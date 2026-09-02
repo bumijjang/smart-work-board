@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>스마트 업무 통합 관리 보드</title>
+<style>
+  :root {
+    --bg-color: #0b1120;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
+    --todo-color: #38bdf8;
+    --doing1-color: #f59e0b;
+    --doing2-color: #fb923c;
+    --done-color: #10b981;
+    --alert-red: #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; padding: 16px; }
+
+  /* Top Bar & Editable Title */
+  .top-bar {
+    max-width: 1600px;
+    margin: 0 auto 16px auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 14px;
+  }
+  .app-title-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 260px; }
+  .app-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+    outline: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: text;
+    line-height: 1.3;
+  }
+  .app-title:focus { background: #0f172a; border-color: var(--todo-color); }
+
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-sync {
+    background: #334155;
+    color: #cbd5e1;
+    border: 1px solid #475569;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+  .btn-sync:active { background: #475569; color: #fff; }
+
+  .btn-new-task {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .btn-new-task:active { background: #1d4ed8; transform: scale(0.98); }
+
+  /* iPad Portrait Tab Switcher */
+  .tab-nav {
+    display: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    max-width: 1600px;
+    margin: 0 auto 16px auto;
+  }
+  .tab-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 10px 4px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .tab-btn.active {
+    background: #334155;
+    color: #fff;
+    border-color: var(--todo-color);
+  }
+
+  /* Kanban Board Grid */
+  .kanban-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 1100px), (orientation: portrait) and (max-width: 1024px) {
+    .tab-nav { display: grid; }
+    .kanban-grid { grid-template-columns: 1fr; }
+    .kanban-col { display: none !important; }
+    .kanban-col.active-col { display: flex !important; }
+  }
+
+  @media (orientation: landscape) and (min-width: 1101px) {
+    .tab-nav { display: none !important; }
+    .kanban-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    .kanban-col { display: flex !important; }
+  }
+
+  /* Column Styles */
+  .kanban-col {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 75vh;
+  }
+  .col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid;
+  }
+  .col-header.todo { border-color: var(--todo-color); color: var(--todo-color); }
+  .col-header.doing1 { border-color: var(--doing1-color); color: var(--doing1-color); }
+  .col-header.doing2 { border-color: var(--doing2-color); color: var(--doing2-color); }
+  .col-header.done { border-color: var(--done-color); color: var(--done-color); }
+  .col-title { font-size: 0.98rem; font-weight: 800; display: flex; align-items: center; gap: 5px; }
+  .col-count {
+    background: #334155;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+  }
+
+  .task-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Task Card */
+  .task-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .task-card.dragging { opacity: 0.4; }
+  .task-card.dragover-card { border: 2px dashed var(--todo-color); background: rgba(56, 189, 248, 0.08); }
+
+  .task-card.done-compact {
+    opacity: 0.85;
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(16, 185, 129, 0.3);
+    padding: 12px;
+    gap: 8px;
+  }
+  .task-card.done-compact .card-title {
+    font-size: 0.98rem;
+    color: #cbd5e1;
+    text-decoration: line-through;
+  }
+
+  /* Card Elements */
+  .card-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .d-day-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 3px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .d-day-urgent { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
+  .d-day-warn { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid #f59e0b; }
+  .d-day-normal { background: rgba(56, 189, 248, 0.15); color: #bae6fd; border: 1px solid #38bdf8; }
+
+  .date-picker-group { display: flex; align-items: center; gap: 2px; font-size: 0.75rem; color: var(--text-sub); }
+  .inline-date-input {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    padding: 3px 4px;
+    border-radius: 4px;
+    outline: none;
+  }
+  .inline-date-input:focus {
+    background: #0f172a;
+    border-color: #475569;
+    color: #fff;
+  }
+
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.4;
+    outline: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    word-break: keep-all;
+    cursor: text;
+  }
+  .card-title:focus { background: #0f172a; border-color: var(--todo-color); }
+
+  /* Checklist */
+  .subtasks-container {
+    background: rgba(15, 23, 42, 0.6);
+    padding: 8px 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .subtask-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .subtask-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--todo-color);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .subtask-text {
+    flex: 1;
+    color: #e2e8f0;
+    outline: none;
+    padding: 3px 4px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    word-break: break-all;
+    cursor: text;
+  }
+  .subtask-text:focus { background: #0f172a; border-color: var(--todo-color); color: #fff; }
+  .subtask-row.completed .subtask-text {
+    text-decoration: line-through;
+    color: #64748b;
+  }
+  .btn-subtask-del {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 2px 6px;
+  }
+
+  .btn-add-subtask {
+    background: transparent;
+    border: 1px dashed #475569;
+    color: #94a3b8;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    text-align: left;
+    margin-top: 2px;
+  }
+
+  /* Attachments */
+  .attachments-section {
+    border-top: 1px dashed rgba(255,255,255,0.12);
+    padding-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .att-top { display: flex; justify-content: space-between; align-items: center; }
+  .att-header { font-size: 0.72rem; font-weight: 700; color: var(--text-sub); }
+  .btn-add-file {
+    background: transparent;
+    border: none;
+    color: var(--todo-color);
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-weight: 700;
+    padding: 3px 6px;
+  }
+
+  .att-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .att-pill {
+    background: #334155;
+    color: #e2e8f0;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid #475569;
+  }
+  .att-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: #38bdf8; }
+  .att-del { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 0.8rem; padding: 0 3px; }
+
+  /* Card Footer */
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 8px;
+    margin-top: 2px;
+  }
+  .move-select {
+    background: #0f172a;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+    font-size: 0.8rem;
+    padding: 5px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    outline: none;
+  }
+  .btn-del-card {
+    background: transparent;
+    border: 1px solid #475569;
+    color: #94a3b8;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+
+  /* Modal (iPad 터치 백업/복원 텍스트 지원) */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+  }
+  .modal-box {
+    background: #1e293b;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    max-width: 600px;
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .modal-box textarea {
+    width: 100%;
+    height: 180px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-family: monospace;
+    outline: none;
+    resize: none;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="app-title-wrap">
+      <span>📂</span>
+      <div class="app-title" id="mainAppTitle" contenteditable="true" 
+           onblur="saveAppTitle(this.innerText)" 
+           onkeydown="handleTitleKeydown(event, this)">스마트 행정·정보화 업무 통합 관리 보드</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn-sync" onclick="handleExportClick()">💾 백업 (내보내기)</button>
+      <button class="btn-sync" onclick="handleImportClick()">📂 복원 (불러오기)</button>
+      <button class="btn-new-task" onclick="addNewBlankTask()">➕ 새 업무 추가</button>
+    </div>
+  </header>
+
+  <!-- iPad Portrait Tab Selector -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('todo', this)">🔵 해야할 업무 (<span id="tab-count-todo">0</span>)</button>
+    <button class="tab-btn" onclick="switchTab('doing1', this)">🟠 진행 Ⅰ (<span id="tab-count-doing1">0</span>)</button>
+    <button class="tab-btn" onclick="switchTab('doing2', this)">🔶 진행 Ⅱ (<span id="tab-count-doing2">0</span>)</button>
+    <button class="tab-btn" onclick="switchTab('done', this)">🟢 완료 (<span id="tab-count-done">0</span>)</button>
+  </nav>
+
+  <!-- Kanban Board (4단 컬럼) -->
+  <main class="kanban-grid">
+    <section class="kanban-col active-col" id="col-todo" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'todo')">
+      <div class="col-header todo">
+        <span class="col-title">🔵 해야할 업무</span>
+        <span class="col-count" id="count-todo">0</span>
+      </div>
+      <div class="task-list" id="list-todo"></div>
+    </section>
+
+    <section class="kanban-col" id="col-doing1" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'doing1')">
+      <div class="col-header doing1">
+        <span class="col-title">🟠 진행중인 업무 Ⅰ</span>
+        <span class="col-count" id="count-doing1">0</span>
+      </div>
+      <div class="task-list" id="list-doing1"></div>
+    </section>
+
+    <section class="kanban-col" id="col-doing2" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'doing2')">
+      <div class="col-header doing2">
+        <span class="col-title">🔶 진행중인 업무 Ⅱ</span>
+        <span class="col-count" id="count-doing2">0</span>
+      </div>
+      <div class="task-list" id="list-doing2"></div>
+    </section>
+
+    <section class="kanban-col" id="col-done" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'done')">
+      <div class="col-header done">
+        <span class="col-title">🟢 진행완료 업무</span>
+        <span class="col-count" id="count-done">0</span>
+      </div>
+      <div class="task-list" id="list-done"></div>
+    </section>
+  </main>
+
+  <!-- 백업/복원 비상 텍스트 모달 (iPad 다운로드/업로드 차단 시 자동 구동) -->
+  <div class="modal-overlay" id="backupModal">
+    <div class="modal-box">
+      <h3 style="font-size:1.1rem; color:#fff;" id="modalTitle">데이터 백업 / 복원</h3>
+      <p style="font-size:0.8rem; color:#94a3b8;" id="modalDesc">아래 텍스트를 복사하여 메모장에 저장하거나, 백업 텍스트를 붙여넣으세요.</p>
+      <textarea id="modalTextarea"></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn-sync" onclick="closeBackupModal()">닫기</button>
+        <button class="btn-new-task" id="modalConfirmBtn" onclick="confirmModalAction()">복원 실행</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="directFileInput" multiple style="position:absolute;width:1px;height:1px;opacity:0;" onchange="handleDirectFileSelected(this)">
+  <input type="file" id="backupFileInput" accept=".json" style="position:absolute;width:1px;height:1px;opacity:0;" onchange="importDataBackup(this)">
+
+  <script>
+    /* ========================================================
+       1. 로컬 스토리지 하이브리드 엔진 (iPad WebKit 100% 호환)
+    ======================================================== */
+    const STORAGE_KEY = "SMART_BOARD_TASKS_DATA";
+
+    function getStoredTasks() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function setStoredTasks(tasks) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      } catch (e) {
+        alert('저장 용량이 초과되었거나 보안 설정으로 저장이 제한되었습니다.');
+      }
+    }
+
+    let tasksData = getStoredTasks() || [
+      {
+        id: "task_sample_1",
+        title: "2026년 하반기 통신 인프라 고도화 사업 일상감사 의뢰",
+        startDate: "2026-09-01",
+        dueDate: "2026-09-10",
+        subtasks: [
+          { text: "사업계획서 결재 완료", done: true },
+          { text: "보안성 검토 결과 과업지시서 반영 확인", done: false },
+          { text: "원가계산서 첨부하여 감사관실 의뢰", done: false }
+        ],
+        status: "doing1",
+        files: []
+      }
+    ];
+
+    function saveAll() {
+      try {
+        setStoredTasks(tasksData);
+        requestAnimationFrame(() => {
+          renderBoard();
+        });
+      } catch(e) {
+        console.log(e);
+      }
+    }
+
+    /* ========================================================
+       2. 백업/복원 (다운로드 + 텍스트 복사 2중 안전장치)
+    ======================================================== */
+    function handleExportClick() {
+      const appTitle = localStorage.getItem('app_board_title') || "스마트 행정·정보화 업무 통합 관리 보드";
+      const exportObj = {
+        title: appTitle,
+        exportDate: new Date().toISOString(),
+        tasks: tasksData
+      };
+
+      const jsonStr = JSON.stringify(exportObj, null, 2);
+
+      // iPad Safari 공유 저장 우선
+      try {
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const file = new File([blob], "업무보드_백업.json", {
+          type: "application/json"
+        });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+          navigator.share({
+            title: "업무보드 백업",
+            files: [file]
+          });
+          return;
+        }
+      } catch(e) {
+        console.log(e);
+      }
+
+      // PC 및 기존 브라우저 다운로드
+      try {
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `업무보드_백업_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch(e) {
+        openTextBackupModal(jsonStr);
+      }
+    }
+
+    function handleImportClick() {
+      // iPad 파일 선택기 호출
+      const fileInput = document.getElementById('backupFileInput');
+      if (fileInput) {
+        fileInput.value = "";
+        fileInput.click();
+      }
+    }
+
+    function importDataBackup(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed && parsed.tasks) {
+            tasksData = parsed.tasks;
+            if (parsed.title) saveAppTitle(parsed.title);
+            saveAll();
+            alert('✅ 데이터 복원이 완료되었습니다.');
+          } else {
+            alert('올바른 백업 파일 형식이 아닙니다.');
+          }
+        } catch (err) {
+          alert('복원 실패: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // 모달 제어 (iPad 비상 텍스트 백업)
+    function openTextBackupModal(jsonStr) {
+      document.getElementById('modalTitle').innerText = "데이터 백업 (텍스트 복사)";
+      document.getElementById('modalDesc').innerText = "아이패드에서 파일 저장이 차단된 경우, 아래 텍스트 전체를 복사하여 메모장에 보관하세요.";
+      document.getElementById('modalTextarea').value = jsonStr;
+      document.getElementById('modalConfirmBtn').style.display = "none";
+      document.getElementById('backupModal').style.display = "flex";
+    }
+
+    function closeBackupModal() {
+      document.getElementById('backupModal').style.display = "none";
+    }
+
+    function confirmModalAction() {
+      try {
+        const raw = document.getElementById('modalTextarea').value;
+        const parsed = JSON.parse(raw);
+        if (parsed.tasks) {
+          tasksData = parsed.tasks;
+          saveAll();
+          alert('복원 완료!');
+          closeBackupModal();
+        }
+      } catch(e) {
+        alert('올바른 JSON 형식이 아닙니다.');
+      }
+    }
+
+    /* ========================================================
+       3. 메인 타이틀 & 탭 전환
+    ======================================================== */
+    function loadAppTitle() {
+      const savedTitle = localStorage.getItem('app_board_title');
+      if (savedTitle) {
+        document.getElementById('mainAppTitle').innerText = savedTitle;
+        document.title = savedTitle;
+      }
+    }
+
+    function saveAppTitle(newTitle) {
+      const title = newTitle.trim() || "스마트 행정·정보화 업무 통합 관리 보드";
+      document.getElementById('mainAppTitle').innerText = title;
+      document.title = title;
+      localStorage.setItem('app_board_title', title);
+    }
+
+    function handleTitleKeydown(e, el) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+      }
+    }
+
+    function switchTab(status, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('active-col'));
+      const targetCol = document.getElementById(`col-${status}`);
+      if (targetCol) targetCol.classList.add('active-col');
+    }
+
+    /* ========================================================
+       4. D-Day 계산
+    ======================================================== */
+    function getDDay(dateStr) {
+      if (!dateStr) return { text: "기한 미지정", className: "d-day-normal" };
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(dateStr);
+      target.setHours(0, 0, 0, 0);
+
+      const diffTime = target - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) return { text: `D+${Math.abs(diffDays)} (지연)`, className: "d-day-urgent" };
+      if (diffDays === 0) return { text: "D-Day (오늘)", className: "d-day-urgent" };
+      if (diffDays <= 3) return { text: `D-${diffDays} (임박)`, className: "d-day-warn" };
+      return { text: `D-${diffDays}`, className: "d-day-normal" };
+    }
+
+    /* ========================================================
+       5. 렌더링 엔진
+    ======================================================== */
+    function renderBoard() {
+      const lists = {
+        todo: document.getElementById('list-todo'),
+        doing1: document.getElementById('list-doing1'),
+        doing2: document.getElementById('list-doing2'),
+        done: document.getElementById('list-done')
+      };
+
+      lists.todo.innerHTML = "";
+      lists.doing1.innerHTML = "";
+      lists.doing2.innerHTML = "";
+      lists.done.innerHTML = "";
+
+      const counts = { todo: 0, doing1: 0, doing2: 0, done: 0 };
+
+      tasksData.forEach(task => {
+        if (task.status === 'doing') task.status = 'doing1';
+        if (!lists[task.status]) task.status = 'todo';
+        counts[task.status]++;
+
+        const isDone = task.status === 'done';
+        const dDay = getDDay(task.dueDate);
+
+        const card = document.createElement('div');
+        card.className = `task-card ${isDone ? 'done-compact' : ''}`;
+        card.draggable = true;
+        card.id = task.id;
+
+        card.ondragstart = (e) => handleDragStart(e, task.id);
+        card.ondragend = handleDragEnd;
+        card.ondragover = (e) => { e.preventDefault(); card.classList.add('dragover-card'); };
+        card.ondragleave = () => card.classList.remove('dragover-card');
+        card.ondrop = (e) => handleCardFileDrop(e, task.id);
+
+        if (isDone) {
+          card.innerHTML = `
+            <div class="card-top">
+              <span class="d-day-badge" style="background:rgba(16,185,129,0.2); color:#6ee7b7; border:1px solid #10b981;">✓ 완료됨</span>
+              <span style="font-size:0.75rem; color:#64748b;">${task.dueDate || ''}</span>
+            </div>
+            <div class="card-title" contenteditable="true" 
+                 onblur="updateTaskTitle('${task.id}', this.innerText)" 
+                 onkeydown="handleTitleKeydown(event, this)">${task.title}</div>
+            <div class="card-footer">
+              <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">
+                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>🔵 해야할 업무</option>
+                <option value="doing1" ${task.status === 'doing1' ? 'selected' : ''}>🟠 진행 Ⅰ</option>
+                <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>🔶 진행 Ⅱ</option>
+                <option value="done" ${task.status === 'done' ? 'selected' : ''}>🟢 완료</option>
+              </select>
+              <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
+            </div>
+          `;
+        } else {
+          const subtasks = task.subtasks || [];
+          const files = task.files || [];
+
+          let subtasksHtml = `
+            <div class="subtasks-container">
+              ${subtasks.map((st, idx) => `
+                <div class="subtask-row ${st.done ? 'completed' : ''}">
+                  <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubtask('${task.id}', ${idx})">
+                  <div class="subtask-text" contenteditable="true" 
+                       onblur="updateSubtaskText('${task.id}', ${idx}, this.innerText)"
+                       onkeydown="handleTitleKeydown(event, this)">${st.text}</div>
+                  <button class="btn-subtask-del" onclick="deleteSubtask('${task.id}', ${idx})">✕</button>
+                </div>
+              `).join('')}
+              <button class="btn-add-subtask" onclick="addSubtaskItem('${task.id}')">➕ 세부 업무 추가</button>
+            </div>
+          `;
+
+          let filesHtml = `
+            <div class="attachments-section">
+              <div class="att-top">
+                <span class="att-header">📎 붙임파일 (${files.length})</span>
+                <button class="btn-add-file" onclick="triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
+              </div>
+              <div class="att-list">
+                ${files.map((file, idx) => `
+                  <div class="att-pill">
+                    <span class="att-name" onclick="downloadFile('${task.id}', ${idx})">${file.name}</span>
+                    <button class="att-del" onclick="deleteAttachment('${task.id}', ${idx})">✕</button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+
+          card.innerHTML = `
+            <div class="card-top">
+              <span class="d-day-badge ${dDay.className}">⏳ ${dDay.text}</span>
+              <div class="date-picker-group">
+                <input type="date" class="inline-date-input" value="${task.startDate || ''}" onchange="updateTaskDate('${task.id}', 'startDate', this.value)">
+                ~
+                <input type="date" class="inline-date-input" value="${task.dueDate || ''}" onchange="updateTaskDate('${task.id}', 'dueDate', this.value)">
+              </div>
+            </div>
+            <div class="card-title" contenteditable="true" 
+                 onblur="updateTaskTitle('${task.id}', this.innerText)" 
+                 onkeydown="handleTitleKeydown(event, this)">${task.title}</div>
+            ${subtasksHtml}
+            ${filesHtml}
+            <div class="card-footer">
+              <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">
+                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>🔵 해야할 업무</option>
+                <option value="doing1" ${task.status === 'doing1' ? 'selected' : ''}>🟠 진행 Ⅰ</option>
+                <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>🔶 진행 Ⅱ</option>
+                <option value="done" ${task.status === 'done' ? 'selected' : ''}>🟢 완료</option>
+              </select>
+              <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
+            </div>
+          `;
+        }
+
+        lists[task.status].appendChild(card);
+      });
+
+      document.getElementById('count-todo').innerText = counts.todo;
+      document.getElementById('count-doing1').innerText = counts.doing1;
+      document.getElementById('count-doing2').innerText = counts.doing2;
+      document.getElementById('count-done').innerText = counts.done;
+
+      document.getElementById('tab-count-todo').innerText = counts.todo;
+      document.getElementById('tab-count-doing1').innerText = counts.doing1;
+      document.getElementById('tab-count-doing2').innerText = counts.doing2;
+      document.getElementById('tab-count-done').innerText = counts.done;
+    }
+
+    /* ========================================================
+       6. 실시간 데이터 조작 핸들러
+    ======================================================== */
+    function addNewBlankTask() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const newTask = {
+        id: "task_" + Date.now(),
+        title: "새 업무명 (터치하여 수정)",
+        startDate: todayStr,
+        dueDate: todayStr,
+        subtasks: [{ text: "세부 업무 내용 입력 (터치)", done: false }],
+        status: "todo",
+        files: []
+      };
+      tasksData.unshift(newTask);
+      saveAll();
+    }
+
+    function updateTaskTitle(taskId, newTitle) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (task && newTitle.trim()) {
+        task.title = newTitle.trim();
+        saveAll();
+      }
+    }
+
+    function updateTaskDate(taskId, field, newDate) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (task) {
+        task[field] = newDate;
+        saveAll();
+      }
+    }
+
+    function updateSubtaskText(taskId, subtaskIdx, newText) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (task && task.subtasks && task.subtasks[subtaskIdx]) {
+        task.subtasks[subtaskIdx].text = newText.trim();
+        saveAll();
+      }
+    }
+
+    function toggleSubtask(taskId, subtaskIdx) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (task && task.subtasks && task.subtasks[subtaskIdx]) {
+        task.subtasks[subtaskIdx].done = !task.subtasks[subtaskIdx].done;
+        saveAll();
+      }
+    }
+
+    function addSubtaskItem(taskId) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (task) {
+        if (!task.subtasks) task.subtasks = [];
+        task.subtasks.push({ text: "새 세부 업무 입력", done: false });
+        saveAll();
+      }
+    }
+
+    function deleteSubtask(taskId, subtaskIdx) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (task && task.subtasks) {
+        task.subtasks.splice(subtaskIdx, 1);
+        saveAll();
+      }
+    }
+
+    function changeTaskStatus(id, newStatus) {
+      const task = tasksData.find(t => t.id === id);
+      if (task) {
+        task.status = newStatus;
+        saveAll();
+      }
+    }
+
+    function removeTask(id) {
+      if (confirm('이 업무 항목을 삭제하시겠습니까?')) {
+        tasksData = tasksData.filter(t => t.id !== id);
+        saveAll();
+      }
+    }
+
+    /* ========================================================
+       7. 파일 첨부/다운로드/삭제
+    ======================================================== */
+    let currentTargetTaskId = null;
+
+    function triggerFileUpload(taskId) {
+      currentTargetTaskId = taskId;
+      document.getElementById('directFileInput').click();
+    }
+
+    function handleDirectFileSelected(input) {
+      if (!currentTargetTaskId || input.files.length === 0) return;
+      attachFiles(currentTargetTaskId, input.files);
+      input.value = "";
+      currentTargetTaskId = null;
+    }
+
+    function handleCardFileDrop(e, taskId) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('dragover-card');
+      if (e.dataTransfer.files.length > 0) {
+        attachFiles(taskId, e.dataTransfer.files);
+      }
+    }
+
+    function attachFiles(taskId, fileList) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (!task) return;
+      if (!task.files) task.files = [];
+
+      Array.from(fileList).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          task.files.push({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            dataUrl: e.target.result
+          });
+          saveAll();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function downloadFile(taskId, fileIdx) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (task && task.files && task.files[fileIdx]) {
+        const f = task.files[fileIdx];
+        const a = document.createElement('a');
+        a.href = f.dataUrl;
+        a.download = f.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    }
+
+    function deleteAttachment(taskId, fileIdx) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (task && task.files) {
+        task.files.splice(fileIdx, 1);
+        saveAll();
+      }
+    }
+
+    /* ========================================================
+       8. 드래그 앤 드롭
+    ======================================================== */
+    let draggedId = null;
+    function handleDragStart(e, id) {
+      if (e.target.getAttribute('contenteditable') === 'true') {
+        e.preventDefault();
+        return;
+      }
+      draggedId = id;
+      e.target.classList.add('dragging');
+    }
+    function handleDragEnd(e) {
+      e.target.classList.remove('dragging');
+    }
+    function allowDrop(e) { e.preventDefault(); }
+    function handleDrop(e, targetStatus) {
+      e.preventDefault();
+      if (draggedId) {
+        changeTaskStatus(draggedId, targetStatus);
+        draggedId = null;
+      }
+    }
+
+    // 초기 실행
+    loadAppTitle();
+    renderBoard();
+  </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const newBtn = document.querySelector('.btn-new-task');
+  if(newBtn){
+    newBtn.addEventListener('touchend', function(e){
+      e.preventDefault();
+      addNewBlankTask();
+    }, {passive:false});
+  }
+});
+</script>
+
+</body>
+</html>
