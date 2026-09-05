@@ -2183,16 +2183,51 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <script>
-if ("serviceWorker" in navigator) {
+(async function clearSmartBoardServiceWorker() {
 
-    navigator.serviceWorker.register(
-        "service-worker.js?v=4",
-        {
-            updateViaCache: "none"
+    if ("serviceWorker" in navigator) {
+
+        const registrations =
+            await navigator.serviceWorker.getRegistrations();
+
+        for (const registration of registrations) {
+
+            if (
+                registration.scope.includes(
+                    "/smart-work-board/"
+                )
+            ) {
+
+                await registration.unregister();
+            }
         }
+    }
+
+
+    if ("caches" in window) {
+
+        const cacheNames =
+            await caches.keys();
+
+        await Promise.all(
+
+            cacheNames
+                .filter(name =>
+                    name.startsWith("smart-board")
+                )
+                .map(name =>
+                    caches.delete(name)
+                )
+
+        );
+    }
+
+
+    console.log(
+        "Smart Work Board Service Worker / Cache cleared"
     );
 
-}
+})();
 </script>
   
 </body>
