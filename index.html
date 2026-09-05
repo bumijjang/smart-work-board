@@ -118,7 +118,7 @@ body.theme-cinema {
   .app-title {
     font-size: 1.35rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--text-main);
     outline: none;
     padding: 4px 8px;
     border-radius: 6px;
@@ -126,7 +126,7 @@ body.theme-cinema {
     cursor: text;
     line-height: 1.3;
   }
-  .app-title:focus { background: #0f172a; border-color: var(--todo-color); }
+  .app-title:focus { background: var(--input-bg); border-color: var(--todo-color); }
 
   .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
   /* =========================================
@@ -252,9 +252,9 @@ body.theme-cinema {
     margin: 0 auto 16px auto;
   }
   .tab-btn {
-    background: #1e293b;
-    border: 1px solid #334155;
-    color: #94a3b8;
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
+    color: var(--text-sub);
     padding: 10px 4px;
     border-radius: 8px;
     font-weight: 700;
@@ -264,8 +264,8 @@ body.theme-cinema {
     white-space: nowrap;
   }
   .tab-btn.active {
-    background: #334155;
-    color: #fff;
+    background: var(--surface-3);
+    color: var(--text-main);
     border-color: var(--todo-color);
   }
 
@@ -293,7 +293,7 @@ body.theme-cinema {
 
   /* Column Styles */
   .kanban-col {
-    background: rgba(30, 41, 59, 0.4);
+    background: var(--surface-1);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 14px;
@@ -315,8 +315,8 @@ body.theme-cinema {
   .col-header.done { border-color: var(--done-color); color: var(--done-color); }
   .col-title { font-size: 0.98rem; font-weight: 800; display: flex; align-items: center; gap: 5px; }
   .col-count {
-    background: #334155;
-    color: #fff;
+    background: var(--surface-3);
+    color: var(--text-main);
     font-size: 0.75rem;
     padding: 2px 8px;
     border-radius: 12px;
@@ -340,7 +340,7 @@ body.theme-cinema {
     flex-direction: column;
     gap: 10px;
     position: relative;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px var(--shadow-color);
   }
   .task-card.dragging { opacity: 0.4; }
   .task-card.dragover-card { border: 2px dashed var(--todo-color); background: rgba(56, 189, 248, 0.08); }
@@ -392,7 +392,7 @@ body.theme-cinema {
   .card-title {
     font-size: 1.05rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--text-main);
     line-height: 1.4;
     outline: none;
     padding: 4px 6px;
@@ -401,7 +401,7 @@ body.theme-cinema {
     word-break: keep-all;
     cursor: text;
   }
-  .card-title:focus { background: #0f172a; border-color: var(--todo-color); }
+  .card-title:focus { background: var(--input-bg); border-color: var(--todo-color); }
 
   /* Checklist */
   .subtasks-container {
