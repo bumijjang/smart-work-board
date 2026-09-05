@@ -1598,71 +1598,506 @@ async function saveCloudBoard() {
       }
     }
 
-    /* ========================================================
-       7. 파일 첨부/다운로드/삭제
-    ======================================================== */
-    let currentTargetTaskId = null;
+/* ========================================================
+   7. 파일 첨부/다운로드/삭제
+   - Supabase Storage attachments 버킷 사용
+======================================================== */
 
-    function triggerFileUpload(taskId) {
-      currentTargetTaskId = taskId;
-      document.getElementById('directFileInput').click();
+let currentTargetTaskId = null;
+
+
+/* 파일 첨부 버튼 클릭 */
+function triggerFileUpload(taskId) {
+
+    currentTargetTaskId = taskId;
+
+    const input =
+        document.getElementById("directFileInput");
+
+    input.value = "";
+    input.click();
+}
+
+
+/* 파일 선택 완료 */
+function handleDirectFileSelected(input) {
+
+    if (
+        !currentTargetTaskId ||
+        input.files.length === 0
+    ) {
+        return;
     }
 
-    function handleDirectFileSelected(input) {
-      if (!currentTargetTaskId || input.files.length === 0) return;
-      attachFiles(currentTargetTaskId, input.files);
-      input.value = "";
-      currentTargetTaskId = null;
+    const targetTaskId =
+        currentTargetTaskId;
+
+    currentTargetTaskId = null;
+
+    attachFiles(
+        targetTaskId,
+        input.files
+    );
+
+    input.value = "";
+}
+
+
+/* PC에서 카드로 파일 드래그 */
+function handleCardFileDrop(e, taskId) {
+
+    e.preventDefault();
+
+    e.currentTarget.classList.remove(
+        "dragover-card"
+    );
+
+    if (
+        e.dataTransfer.files.length > 0
+    ) {
+
+        attachFiles(
+            taskId,
+            e.dataTransfer.files
+        );
+    }
+}
+
+
+/* 저장 경로에 사용할 파일 확장자 */
+function getStorageFileExtension(fileName) {
+
+    const dotIndex =
+        fileName.lastIndexOf(".");
+
+    if (
+        dotIndex <= 0 ||
+        dotIndex === fileName.length - 1
+    ) {
+        return "";
     }
 
-    function handleCardFileDrop(e, taskId) {
-      e.preventDefault();
-      e.currentTarget.classList.remove('dragover-card');
-      if (e.dataTransfer.files.length > 0) {
-        attachFiles(taskId, e.dataTransfer.files);
-      }
+    const extension =
+        fileName
+            .slice(dotIndex + 1)
+            .replace(
+                /[^a-zA-Z0-9]/g,
+                ""
+            )
+            .slice(0, 10);
+
+    if (!extension) {
+        return "";
     }
 
-    function attachFiles(taskId, fileList) {
-      const task = tasksData.find(t => t.id === taskId);
-      if (!task) return;
-      if (!task.files) task.files = [];
+    return "." + extension;
+}
 
-      Array.from(fileList).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          task.files.push({
+
+/* 중복되지 않는 파일 ID 생성 */
+function createStorageFileId() {
+
+    if (
+        window.crypto &&
+        typeof window.crypto.randomUUID === "function"
+    ) {
+
+        return window.crypto.randomUUID();
+    }
+
+    return (
+        Date.now().toString() +
+        "_" +
+        Math.random()
+            .toString(36)
+            .slice(2)
+    );
+}
+
+
+/* ========================================================
+   Supabase Storage에 파일 업로드
+======================================================== */
+
+async function attachFiles(
+    taskId,
+    fileList
+) {
+
+    const task =
+        tasksData.find(
+            t => t.id === taskId
+        );
+
+    if (!task) {
+        return;
+    }
+
+    if (!task.files) {
+        task.files = [];
+    }
+
+
+    const {
+        data: { user },
+        error: userError
+    } = await sb.auth.getUser();
+
+
+    if (
+        userError ||
+        !user
+    ) {
+
+        console.error(
+            "첨부파일 사용자 확인 오류:",
+            userError
+        );
+
+        alert(
+            "로그인 정보를 확인할 수 없습니다."
+        );
+
+        setCloudSyncStatus(
+            "error",
+            "☁ 파일 업로드 실패"
+        );
+
+        return;
+    }
+
+
+    const files =
+        Array.from(fileList);
+
+
+    setCloudSyncStatus(
+        "syncing",
+        "☁ 파일 업로드 중..."
+    );
+
+
+    let successCount = 0;
+
+
+    for (const file of files) {
+
+        const fileId =
+            createStorageFileId();
+
+        const extension =
+            getStorageFileExtension(
+                file.name
+            );
+
+
+        /*
+           Storage 저장 구조
+
+           사용자ID/
+               업무ID/
+                   고유파일ID.확장자
+
+           첫 번째 폴더가 사용자ID이므로
+           현재 설정한 Storage RLS 정책과 맞습니다.
+        */
+        const storagePath =
+            user.id +
+            "/" +
+            taskId +
+            "/" +
+            fileId +
+            extension;
+
+
+        const {
+            error: uploadError
+        } =
+            await sb.storage
+                .from("attachments")
+                .upload(
+                    storagePath,
+                    file,
+                    {
+                        cacheControl: "3600",
+                        upsert: false,
+                        contentType:
+                            file.type ||
+                            "application/octet-stream"
+                    }
+                );
+
+
+        if (uploadError) {
+
+            console.error(
+                "파일 업로드 오류:",
+                uploadError
+            );
+
+            alert(
+                "파일 업로드 실패:\n" +
+                file.name
+            );
+
+            continue;
+        }
+
+
+        /*
+           업무 데이터에는 실제 파일을 넣지 않고
+           파일 정보와 Storage 경로만 저장
+        */
+        task.files.push({
             name: file.name,
             type: file.type,
             size: file.size,
-            dataUrl: e.target.result
-          });
-          saveAll();
-        };
-        reader.readAsDataURL(file);
-      });
+            path: storagePath
+        });
+
+
+        successCount++;
     }
 
-    function downloadFile(taskId, fileIdx) {
-      const task = tasksData.find(t => t.id === taskId);
-      if (task && task.files && task.files[fileIdx]) {
-        const f = task.files[fileIdx];
-        const a = document.createElement('a');
-        a.href = f.dataUrl;
-        a.download = f.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    }
 
-    function deleteAttachment(taskId, fileIdx) {
-      const task = tasksData.find(t => t.id === taskId);
-      if (task && task.files) {
-        task.files.splice(fileIdx, 1);
+    if (successCount > 0) {
+
+        /*
+           파일 경로를 board_state에도 저장
+        */
         saveAll();
-      }
+
+    } else {
+
+        setCloudSyncStatus(
+            "error",
+            "☁ 파일 업로드 실패"
+        );
     }
+}
+
+
+/* ========================================================
+   첨부파일 열기
+======================================================== */
+
+async function downloadFile(
+    taskId,
+    fileIdx
+) {
+
+    const task =
+        tasksData.find(
+            t => t.id === taskId
+        );
+
+
+    if (
+        !task ||
+        !task.files ||
+        !task.files[fileIdx]
+    ) {
+        return;
+    }
+
+
+    const file =
+        task.files[fileIdx];
+
+
+    /*
+       예전에 dataUrl 방식으로 넣은 첨부파일이 있다면
+       기존 파일도 계속 열 수 있도록 유지
+    */
+    if (file.dataUrl) {
+
+        const a =
+            document.createElement("a");
+
+        a.href =
+            file.dataUrl;
+
+        a.download =
+            file.name;
+
+        document.body.appendChild(a);
+
+        a.click();
+
+        document.body.removeChild(a);
+
+        return;
+    }
+
+
+    if (!file.path) {
+
+        alert(
+            "첨부파일 저장 경로가 없습니다."
+        );
+
+        return;
+    }
+
+
+    /*
+       iPad Safari 팝업 차단 방지를 위해
+       사용자 클릭 직후 빈 창을 먼저 생성
+    */
+    const fileWindow =
+        window.open(
+            "",
+            "_blank"
+        );
+
+
+    setCloudSyncStatus(
+        "syncing",
+        "☁ 파일 여는 중..."
+    );
+
+
+    const {
+        data,
+        error
+    } =
+        await sb.storage
+            .from("attachments")
+            .createSignedUrl(
+                file.path,
+                300
+            );
+
+
+    if (
+        error ||
+        !data ||
+        !data.signedUrl
+    ) {
+
+        console.error(
+            "파일 열기 오류:",
+            error
+        );
+
+        if (fileWindow) {
+            fileWindow.close();
+        }
+
+        alert(
+            "첨부파일을 열 수 없습니다."
+        );
+
+        setCloudSyncStatus(
+            "error",
+            "☁ 파일 열기 실패"
+        );
+
+        return;
+    }
+
+
+    if (fileWindow) {
+
+        fileWindow.location.href =
+            data.signedUrl;
+
+    } else {
+
+        window.location.href =
+            data.signedUrl;
+    }
+
+
+    setCloudSyncStatus(
+        "synced",
+        "☁ 동기화 완료"
+    );
+}
+
+
+/* ========================================================
+   첨부파일 삭제
+======================================================== */
+
+async function deleteAttachment(
+    taskId,
+    fileIdx
+) {
+
+    const task =
+        tasksData.find(
+            t => t.id === taskId
+        );
+
+
+    if (
+        !task ||
+        !task.files ||
+        !task.files[fileIdx]
+    ) {
+        return;
+    }
+
+
+    const file =
+        task.files[fileIdx];
+
+
+    /*
+       새 Storage 방식 파일이면
+       Storage에서도 실제 파일 삭제
+    */
+    if (file.path) {
+
+        setCloudSyncStatus(
+            "syncing",
+            "☁ 파일 삭제 중..."
+        );
+
+
+        const {
+            error
+        } =
+            await sb.storage
+                .from("attachments")
+                .remove([
+                    file.path
+                ]);
+
+
+        if (error) {
+
+            console.error(
+                "첨부파일 삭제 오류:",
+                error
+            );
+
+            alert(
+                "첨부파일 삭제에 실패했습니다."
+            );
+
+            setCloudSyncStatus(
+                "error",
+                "☁ 파일 삭제 실패"
+            );
+
+            return;
+        }
+    }
+
+
+    /*
+       업무 카드의 첨부파일 목록에서도 제거
+    */
+    task.files.splice(
+        fileIdx,
+        1
+    );
+
+
+    saveAll();
+}
 
     /* ========================================================
        8. 드래그 앤 드롭
