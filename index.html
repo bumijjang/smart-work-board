@@ -1916,32 +1916,14 @@ async function downloadFile(
         task.files[fileIdx];
 
 
-    /* 예전 dataUrl 방식 첨부파일 호환 */
-    if (file.dataUrl) {
-
-        const a =
-            document.createElement("a");
-
-        a.href =
-            file.dataUrl;
-
-        a.download =
-            file.name;
-
-        document.body.appendChild(a);
-
-        a.click();
-
-        document.body.removeChild(a);
-
-        return;
-    }
-
-
+    /*
+       앞으로 모든 첨부파일은
+       Supabase Storage path 방식만 사용
+    */
     if (!file.path) {
 
         alert(
-            "첨부파일 저장 경로가 없습니다."
+            "이 첨부파일은 예전 테스트 방식으로 저장된 파일입니다.\n삭제 후 다시 첨부해 주세요."
         );
 
         return;
@@ -1952,38 +1934,6 @@ async function downloadFile(
         "syncing",
         "☁ 파일 여는 중..."
     );
-
-
-    /*
-       iPad / iPhone 판별
-       iPadOS는 MacIntel로 표시될 수도 있음
-    */
-    const isIOS =
-        /iPad|iPhone|iPod/i.test(
-            navigator.userAgent
-        )
-        ||
-        (
-            navigator.platform === "MacIntel"
-            &&
-            navigator.maxTouchPoints > 1
-        );
-
-
-    /*
-       PC에서는 기존처럼 새 창 사용
-       iPad에서는 새 창을 미리 만들지 않음
-    */
-    let fileWindow = null;
-
-    if (!isIOS) {
-
-        fileWindow =
-            window.open(
-                "",
-                "_blank"
-            );
-    }
 
 
     const {
@@ -2010,11 +1960,6 @@ async function downloadFile(
         );
 
 
-        if (fileWindow) {
-            fileWindow.close();
-        }
-
-
         alert(
             "첨부파일을 열 수 없습니다."
         );
@@ -2030,24 +1975,11 @@ async function downloadFile(
 
 
     /*
-       iPad에서는 현재 화면에서 열기
-       PC에서는 새 창에서 열기
+       PC와 iPad 모두 동일한 방식
+       별도 저장 없이 브라우저에서 바로 열기
     */
-    if (isIOS) {
-
-        window.location.href =
-            data.signedUrl;
-
-    } else if (fileWindow) {
-
-        fileWindow.location.href =
-            data.signedUrl;
-
-    } else {
-
-        window.location.href =
-            data.signedUrl;
-    }
+    window.location.href =
+        data.signedUrl;
 
 
     setCloudSyncStatus(
