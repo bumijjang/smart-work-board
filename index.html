@@ -23,7 +23,82 @@
     --done-color: #10b981;
     --alert-red: #ef4444;
   }
+/* ========================================================
+   UI THEME SYSTEM
+   - 기본값은 현재 Dark Theme
+======================================================== */
 
+
+/* DARK MODE */
+body.theme-dark {
+
+    --bg-color: #0b1120;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
+
+    --surface-1: #0f172a;
+    --surface-2: #1e293b;
+    --surface-3: #334155;
+
+    --button-bg: #2563eb;
+    --button-text: #ffffff;
+
+    --input-bg: #0f172a;
+
+    --shadow-color: rgba(0, 0, 0, 0.35);
+
+}
+
+
+/* LIGHT MODE */
+body.theme-light {
+
+    --bg-color: #f1f5f9;
+    --card-bg: #ffffff;
+    --border-color: #cbd5e1;
+
+    --text-main: #0f172a;
+    --text-sub: #64748b;
+
+    --surface-1: #ffffff;
+    --surface-2: #f8fafc;
+    --surface-3: #e2e8f0;
+
+    --button-bg: #2563eb;
+    --button-text: #ffffff;
+
+    --input-bg: #ffffff;
+
+    --shadow-color: rgba(15, 23, 42, 0.12);
+
+}
+
+
+/* CINEMA MODE */
+body.theme-cinema {
+
+    --bg-color: #100d0b;
+    --card-bg: #211a16;
+    --border-color: #554436;
+
+    --text-main: #fff8e7;
+    --text-sub: #c5b59f;
+
+    --surface-1: #18120f;
+    --surface-2: #261d18;
+    --surface-3: #45362b;
+
+    --button-bg: #a97932;
+    --button-text: #fff8e7;
+
+    --input-bg: #18120f;
+
+    --shadow-color: rgba(0, 0, 0, 0.55);
+
+}
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
   body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; padding: 16px; }
 
@@ -138,7 +213,22 @@
     user-select: none;
   }
   .btn-sync:active { background: #475569; color: #fff; }
+/* 테마 선택 드롭다운 */
+.theme-select {
+    background: var(--surface-2, #1e293b);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+}
 
+.theme-select:focus {
+    border-color: var(--todo-color);
+}
   .btn-new-task {
     background: #2563eb;
     color: #fff;
@@ -611,7 +701,12 @@
 <div class="cloud-sync-status waiting" id="cloudSyncStatus">
     <span class="cloud-sync-dot"></span>
     <span id="cloudSyncText">☁ 클라우드 연결 전</span>
-</div>      
+</div> 
+<select id="themeSelect" class="theme-select">
+    <option value="dark">🌙 다크 모드</option>
+    <option value="light">☀️ 라이트 모드</option>
+    <option value="cinema">🎬 시네마 모드</option>
+</select>      
       <button class="btn-new-task" onclick="addNewBlankTask()">➕ 새 업무 추가</button>
     </div>
   </header>
@@ -705,7 +800,158 @@ const sb = window.supabase.createClient(
 
 let cloudReady = false;
 let cloudSaveTimer = null;
+/* ========================================================
+   UI 테마 변경 / 저장
+======================================================== */
 
+const THEME_STORAGE_KEY =
+    "SMART_BOARD_UI_THEME";
+
+
+function applyTheme(theme) {
+
+    const allowedThemes = [
+        "dark",
+        "light",
+        "cinema"
+    ];
+
+
+    const safeTheme =
+        allowedThemes.includes(theme)
+            ? theme
+            : "dark";
+
+
+    /*
+       기존 테마 클래스 제거
+    */
+    document.body.classList.remove(
+        "theme-dark",
+        "theme-light",
+        "theme-cinema"
+    );
+
+
+    /*
+       선택한 테마 적용
+    */
+    document.body.classList.add(
+        "theme-" + safeTheme
+    );
+
+
+    /*
+       드롭다운 표시도 현재 테마에 맞춤
+    */
+    const select =
+        document.getElementById(
+            "themeSelect"
+        );
+
+    if (select) {
+        select.value = safeTheme;
+    }
+
+
+    /*
+       현재 기기에 선택 테마 기억
+    */
+    try {
+
+        localStorage.setItem(
+            THEME_STORAGE_KEY,
+            safeTheme
+        );
+
+    } catch (e) {
+
+        console.log(
+            "테마 저장 제한:",
+            e
+        );
+    }
+
+
+    /*
+       Safari / 모바일 브라우저 상단 색상도 맞춤
+    */
+    const themeColorMeta =
+        document.querySelector(
+            'meta[name="theme-color"]'
+        );
+
+
+    if (themeColorMeta) {
+
+        const themeColors = {
+            dark: "#0b1120",
+            light: "#f1f5f9",
+            cinema: "#100d0b"
+        };
+
+
+        themeColorMeta.setAttribute(
+            "content",
+            themeColors[safeTheme]
+        );
+    }
+}
+
+
+/*
+   저장된 테마 불러오기
+*/
+function initTheme() {
+
+    let savedTheme = "dark";
+
+
+    try {
+
+        savedTheme =
+            localStorage.getItem(
+                THEME_STORAGE_KEY
+            )
+            ||
+            "dark";
+
+    } catch (e) {
+
+        savedTheme = "dark";
+    }
+
+
+    applyTheme(
+        savedTheme
+    );
+
+
+    const select =
+        document.getElementById(
+            "themeSelect"
+        );
+
+
+    if (select) {
+
+        select.addEventListener(
+            "change",
+            function() {
+
+                applyTheme(
+                    this.value
+                );
+            }
+        );
+    }
+}
+
+
+/*
+   페이지 시작 시 테마 적용
+*/
+initTheme();
 
 /* 상단의 클라우드 상태 표시 변경 */
 function setCloudSyncStatus(status, text) {
