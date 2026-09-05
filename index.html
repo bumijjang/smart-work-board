@@ -54,6 +54,75 @@
   .app-title:focus { background: #0f172a; border-color: var(--todo-color); }
 
   .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* =========================================
+   클라우드 동기화 상태 표시
+========================================= */
+
+.cloud-sync-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    padding: 10px 14px;
+
+    border-radius: 8px;
+
+    font-size: 0.85rem;
+    font-weight: 800;
+
+    white-space: nowrap;
+    user-select: none;
+
+    transition: all 0.2s ease;
+}
+
+
+/* 클라우드 연결 전 */
+.cloud-sync-status.waiting {
+    background: rgba(148, 163, 184, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    color: #cbd5e1;
+}
+
+
+/* 저장 중 */
+.cloud-sync-status.syncing {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: #fbbf24;
+}
+
+
+/* 동기화 완료 */
+.cloud-sync-status.synced {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    color: #6ee7b7;
+}
+
+
+/* 동기화 실패 */
+.cloud-sync-status.error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+}
+
+
+/* 왼쪽 작은 상태 점 */
+.cloud-sync-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    box-shadow: 0 0 7px currentColor;
+
+    flex-shrink: 0;
+}
   .btn-sync {
     background: #334155;
     color: #cbd5e1;
@@ -417,8 +486,11 @@
            onkeydown="handleTitleKeydown(event, this)">스마트 행정·정보화 업무 통합 관리 보드</div>
     </div>
     <div class="btn-group">
-      <button class="btn-sync" onclick="handleExportClick()">💾 백업 (내보내기)</button>
-      <button class="btn-sync" onclick="handleImportClick()">📂 복원 (불러오기)</button>
+
+<div class="cloud-sync-status waiting" id="cloudSyncStatus">
+    <span class="cloud-sync-dot"></span>
+    <span id="cloudSyncText">☁ 클라우드 연결 전</span>
+</div>      
       <button class="btn-new-task" onclick="addNewBlankTask()">➕ 새 업무 추가</button>
     </div>
   </header>
