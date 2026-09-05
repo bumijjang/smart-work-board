@@ -162,36 +162,46 @@ body.theme-soul {
 
     color-scheme: dark;
 
-    --bg-color: #08090b;
-    --card-bg: rgba(16, 18, 23, 0.82);
-    --border-color: rgba(84, 98, 117, 0.62);
+    --bg-color: #06080d;
+    --card-bg: rgba(10, 14, 22, 0.80);
+    --border-color: rgba(62, 102, 134, 0.65);
 
-    --text-main: #f7f3ea;
-    --text-sub: #b8c0cb;
+    --text-main: #f7f7f2;
+    --text-sub: #b4bdc8;
 
-    --surface-1: rgba(10, 12, 17, 0.72);
-    --surface-2: rgba(18, 22, 30, 0.76);
-    --surface-3: rgba(54, 61, 74, 0.92);
+    --surface-1: rgba(7, 11, 18, 0.56);
+    --surface-2: rgba(12, 17, 27, 0.68);
+    --surface-3: rgba(31, 43, 60, 0.90);
 
-    --button-bg: #d85f22;
-    --button-active-bg: #a94416;
+    --button-bg: linear-gradient(180deg, #ea7f2d, #b44e12);
+    --button-active-bg: #913d10;
     --button-text: #ffffff;
 
-    --input-bg: rgba(11, 14, 20, 0.86);
+    --input-bg: rgba(7, 12, 20, 0.88);
 
-    --shadow-color: rgba(0, 0, 0, 0.58);
+    --shadow-color: rgba(0, 0, 0, 0.64);
 
-    --panel-bg: rgba(8, 11, 17, 0.66);
-    --panel-border: rgba(110, 120, 134, 0.28);
+    --panel-bg: rgba(7, 11, 17, 0.54);
+    --panel-border: rgba(77, 118, 147, 0.34);
     --divider-color: rgba(255,255,255,0.08);
-    --pill-bg: rgba(26, 30, 38, 0.88);
-    --pill-border: rgba(88, 98, 113, 0.76);
-    --done-card-bg: rgba(14, 16, 22, 0.72);
-    --link-color: #75dcff;
+    --pill-bg: rgba(23, 30, 42, 0.76);
+    --pill-border: rgba(84, 102, 122, 0.78);
+    --done-card-bg: rgba(8, 15, 24, 0.72);
+    --link-color: #74dcff;
+
+    --soul-line-blue: #2ec7ff;
+    --soul-line-orange: #ff8d2c;
+    --soul-line-red: #ff774c;
+    --soul-line-green: #47dfb3;
+
+    --status-icon-todo: url('soul_todo.svg');
+    --status-icon-doing1: url('soul_doing1.svg');
+    --status-icon-doing2: url('soul_doing2.svg');
+    --status-icon-done: url('soul_done.svg');
 
     background-image:
-        linear-gradient(90deg, rgba(3, 5, 8, 0.92) 0%, rgba(5, 8, 12, 0.90) 32%, rgba(8, 12, 18, 0.84) 58%, rgba(8, 12, 18, 0.56) 78%, rgba(8, 12, 18, 0.34) 100%),
-        radial-gradient(circle at 80% 18%, rgba(105, 216, 255, 0.14), transparent 22%),
+        linear-gradient(90deg, rgba(2, 4, 7, 0.94) 0%, rgba(3, 6, 10, 0.92) 28%, rgba(6, 9, 15, 0.86) 54%, rgba(7, 11, 18, 0.48) 78%, rgba(8, 12, 18, 0.22) 100%),
+        radial-gradient(circle at 80% 22%, rgba(55, 200, 255, 0.14), transparent 18%),
         url('theme_soul_bg.png');
     background-size: auto, auto, cover;
     background-position: center, center, center right;
@@ -448,6 +458,174 @@ body.theme-assemble .inline-date-input:focus,
 body.theme-classic .inline-date-input:focus {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+}
+
+
+
+/* ========================================================
+   SOUL REAPER THEME : ICON + UI SKIN
+======================================================== */
+.theme-status-icon{
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+}
+.theme-status-icon.sm{
+  width: 18px;
+  height: 18px;
+  flex-basis: 18px;
+}
+.theme-status-icon.icon-todo{ background-image: var(--status-icon-todo, none); }
+.theme-status-icon.icon-doing1{ background-image: var(--status-icon-doing1, none); }
+.theme-status-icon.icon-doing2{ background-image: var(--status-icon-doing2, none); }
+.theme-status-icon.icon-done{ background-image: var(--status-icon-done, none); }
+
+.col-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.tab-btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.tab-btn .tab-label-text{ white-space:nowrap; }
+.col-title-text{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+
+body.theme-soul .top-bar{
+  background: linear-gradient(180deg, rgba(7,10,15,0.78), rgba(5,8,12,0.62));
+  border: 1px solid rgba(76, 118, 148, 0.32);
+  border-radius: 18px;
+  padding: 12px 16px 14px;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.46);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+body.theme-soul .app-title-wrap{
+  position: relative;
+}
+body.theme-soul .app-title{
+  color: #fff7ef;
+  letter-spacing: 0.2px;
+  text-shadow: 0 0 10px rgba(60, 210, 255, 0.15), 0 2px 14px rgba(0,0,0,0.28);
+}
+body.theme-soul .kanban-col{
+  background: linear-gradient(180deg, rgba(7,11,18,0.60), rgba(7,11,18,0.52));
+  border: 1px solid rgba(65, 103, 132, 0.34);
+  border-radius: 18px;
+  box-shadow: 0 14px 28px rgba(0,0,0,0.34);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+body.theme-soul .kanban-col.empty-col{
+  background: linear-gradient(180deg, rgba(7,11,18,0.24), rgba(7,11,18,0.20));
+  border-style: dashed;
+}
+body.theme-soul .col-header{
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+}
+body.theme-soul .col-header.todo{
+  box-shadow: inset 0 -2px 0 var(--soul-line-blue);
+}
+body.theme-soul .col-header.doing1{
+  box-shadow: inset 0 -2px 0 var(--soul-line-orange);
+}
+body.theme-soul .col-header.doing2{
+  box-shadow: inset 0 -2px 0 #ff7f4d;
+}
+body.theme-soul .col-header.done{
+  box-shadow: inset 0 -2px 0 var(--soul-line-green);
+}
+body.theme-soul .col-count{
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(0,0,0,0.22);
+}
+body.theme-soul .task-card{
+  background: linear-gradient(180deg, rgba(9,14,22,0.88), rgba(8,13,20,0.78));
+  border: 1px solid rgba(77, 118, 147, 0.42);
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.36);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+body.theme-soul .task-card.done-compact{
+  background: linear-gradient(180deg, rgba(7,14,20,0.88), rgba(7,12,17,0.76));
+}
+body.theme-soul .task-card:hover{
+  box-shadow: 0 16px 34px rgba(0,0,0,0.42), 0 0 0 1px rgba(46,199,255,0.18);
+}
+body.theme-soul .subtasks-container,
+body.theme-soul .attachments-section{
+  background: rgba(8, 13, 20, 0.42);
+  border: 1px solid rgba(67, 92, 121, 0.28);
+  border-radius: 14px;
+}
+body.theme-soul .subtask-row{
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+body.theme-soul .subtask-row.completed .subtask-text{
+  color: #89a2b8;
+}
+body.theme-soul .btn-add-subtask{
+  border: 1px dashed rgba(87, 121, 153, 0.48);
+  background: rgba(11, 18, 28, 0.45);
+  color: #cfe8f8;
+}
+body.theme-soul .btn-add-subtask:hover{
+  background: rgba(16, 24, 36, 0.66);
+}
+body.theme-soul .att-pill{
+  background: rgba(23, 34, 50, 0.72);
+  border: 1px solid rgba(85, 110, 137, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+body.theme-soul .att-name,
+body.theme-soul .btn-add-file,
+body.theme-soul .att-header{
+  color: #83dfff;
+}
+body.theme-soul .move-select,
+body.theme-soul .btn-del-card,
+body.theme-soul .theme-select{
+  background: linear-gradient(180deg, rgba(8,13,22,0.92), rgba(8,12,18,0.82));
+  border: 1px solid rgba(92, 128, 158, 0.58);
+  color: #fff7ef;
+}
+body.theme-soul .btn-new-task{
+  background: linear-gradient(180deg, #ef8a34, #c05a18);
+  color: #fffaf4;
+  border: 1px solid rgba(255, 176, 98, 0.34);
+  box-shadow: 0 10px 22px rgba(192,90,24,0.28);
+}
+body.theme-soul .btn-new-task:hover{
+  filter: brightness(1.04);
+}
+body.theme-soul .cloud-sync-status{
+  background: linear-gradient(180deg, rgba(7, 30, 24, 0.92), rgba(5, 24, 20, 0.82));
+  border: 1px solid rgba(71,223,179,0.32);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.24);
+}
+body.theme-soul .inline-date-input{
+  background: rgba(7,12,18,0.64);
+  border: 1px solid rgba(73, 100, 129, 0.40);
+}
+body.theme-soul .d-day-badge{
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 4px 12px rgba(0,0,0,0.22);
+}
+body.theme-soul .tab-btn.active{
+  box-shadow: inset 0 -2px 0 var(--todo-color), 0 8px 18px rgba(0,0,0,0.24);
 }
 
 
@@ -1084,17 +1262,17 @@ body.theme-light .cloud-sync-status.error { color: #b91c1c; }
 
   <!-- iPad Portrait Tab Selector -->
   <nav class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('todo', this)">🔵 해야할 업무 (<span id="tab-count-todo">0</span>)</button>
-    <button class="tab-btn" onclick="switchTab('doing1', this)">🟠 진행 Ⅰ (<span id="tab-count-doing1">0</span>)</button>
-    <button class="tab-btn" onclick="switchTab('doing2', this)">🔶 진행 Ⅱ (<span id="tab-count-doing2">0</span>)</button>
-    <button class="tab-btn" onclick="switchTab('done', this)">🟢 완료 (<span id="tab-count-done">0</span>)</button>
+    <button class="tab-btn active" id="tabbtn-todo" data-status="todo" onclick="switchTab('todo', this)"><span class="theme-status-icon sm icon-todo"></span><span class="tab-label-text">해야할 업무</span> (<span id="tab-count-todo">0</span>)</button>
+    <button class="tab-btn" id="tabbtn-doing1" data-status="doing1" onclick="switchTab('doing1', this)"><span class="theme-status-icon sm icon-doing1"></span><span class="tab-label-text">진행 Ⅰ</span> (<span id="tab-count-doing1">0</span>)</button>
+    <button class="tab-btn" id="tabbtn-doing2" data-status="doing2" onclick="switchTab('doing2', this)"><span class="theme-status-icon sm icon-doing2"></span><span class="tab-label-text">진행 Ⅱ</span> (<span id="tab-count-doing2">0</span>)</button>
+    <button class="tab-btn" id="tabbtn-done" data-status="done" onclick="switchTab('done', this)"><span class="theme-status-icon sm icon-done"></span><span class="tab-label-text">완료</span> (<span id="tab-count-done">0</span>)</button>
   </nav>
 
   <!-- Kanban Board (4단 컬럼) -->
   <main class="kanban-grid">
     <section class="kanban-col active-col" id="col-todo" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'todo')">
       <div class="col-header todo">
-        <span class="col-title">🔵 해야할 업무</span>
+        <span class="col-title" id="coltitle-todo"><span class="theme-status-icon icon-todo"></span><span class="col-title-text">해야할 업무</span></span>
         <span class="col-count" id="count-todo">0</span>
       </div>
       <div class="task-list" id="list-todo"></div>
@@ -1102,7 +1280,7 @@ body.theme-light .cloud-sync-status.error { color: #b91c1c; }
 
     <section class="kanban-col" id="col-doing1" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'doing1')">
       <div class="col-header doing1">
-        <span class="col-title">🟠 진행중인 업무 Ⅰ</span>
+        <span class="col-title" id="coltitle-doing1"><span class="theme-status-icon icon-doing1"></span><span class="col-title-text">진행중인 업무 Ⅰ</span></span>
         <span class="col-count" id="count-doing1">0</span>
       </div>
       <div class="task-list" id="list-doing1"></div>
@@ -1110,7 +1288,7 @@ body.theme-light .cloud-sync-status.error { color: #b91c1c; }
 
     <section class="kanban-col" id="col-doing2" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'doing2')">
       <div class="col-header doing2">
-        <span class="col-title">🔶 진행중인 업무 Ⅱ</span>
+        <span class="col-title" id="coltitle-doing2"><span class="theme-status-icon icon-doing2"></span><span class="col-title-text">진행중인 업무 Ⅱ</span></span>
         <span class="col-count" id="count-doing2">0</span>
       </div>
       <div class="task-list" id="list-doing2"></div>
@@ -1118,7 +1296,7 @@ body.theme-light .cloud-sync-status.error { color: #b91c1c; }
 
     <section class="kanban-col" id="col-done" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'done')">
       <div class="col-header done">
-        <span class="col-title">🟢 진행완료 업무</span>
+        <span class="col-title" id="coltitle-done"><span class="theme-status-icon icon-done"></span><span class="col-title-text">진행완료 업무</span></span>
         <span class="col-count" id="count-done">0</span>
       </div>
       <div class="task-list" id="list-done"></div>
@@ -1177,6 +1355,84 @@ let cloudSaveTimer = null;
 
 const THEME_STORAGE_KEY =
     "SMART_BOARD_UI_THEME";
+
+
+
+function getThemeStatusMeta() {
+
+    const isSoul =
+        document.body.classList.contains("theme-soul");
+
+    if (isSoul) {
+        return {
+            todo:   { short: "콘 대기",     board: "해야할 업무",      mobile: "콘 대기", option: "🦁 해야할 업무" },
+            doing1: { short: "참월 진행Ⅰ", board: "진행중인 업무 Ⅰ", mobile: "참월 진행Ⅰ", option: "⚔️ 진행 Ⅰ" },
+            doing2: { short: "가면 진행Ⅱ", board: "진행중인 업무 Ⅱ", mobile: "가면 진행Ⅱ", option: "🎭 진행 Ⅱ" },
+            done:   { short: "영혼 완료",  board: "진행완료 업무",    mobile: "영혼 완료", option: "💠 완료" }
+        };
+    }
+
+    return {
+        todo:   { short: "해야할 업무", board: "해야할 업무", mobile: "해야할 업무", option: "🔵 해야할 업무" },
+        doing1: { short: "진행 Ⅰ",      board: "진행중인 업무 Ⅰ", mobile: "진행 Ⅰ", option: "🟠 진행 Ⅰ" },
+        doing2: { short: "진행 Ⅱ",      board: "진행중인 업무 Ⅱ", mobile: "진행 Ⅱ", option: "🔶 진행 Ⅱ" },
+        done:   { short: "완료",        board: "진행완료 업무", mobile: "완료", option: "🟢 완료" }
+    };
+}
+
+function getStatusOptionLabel(status) {
+    const meta = getThemeStatusMeta();
+    return meta[status] ? meta[status].option : status;
+}
+
+function refreshThemeStatusUI() {
+
+    const meta = getThemeStatusMeta();
+
+    const tabMap = {
+        todo: "tabbtn-todo",
+        doing1: "tabbtn-doing1",
+        doing2: "tabbtn-doing2",
+        done: "tabbtn-done"
+    };
+
+    const colMap = {
+        todo: "coltitle-todo",
+        doing1: "coltitle-doing1",
+        doing2: "coltitle-doing2",
+        done: "coltitle-done"
+    };
+
+    Object.keys(tabMap).forEach(status => {
+        const tab = document.getElementById(tabMap[status]);
+        if (tab) {
+            const label = tab.querySelector(".tab-label-text");
+            if (label) label.innerText = meta[status].mobile;
+        }
+    });
+
+    Object.keys(colMap).forEach(status => {
+        const col = document.getElementById(colMap[status]);
+        if (col) {
+            const label = col.querySelector(".col-title-text");
+            if (label) label.innerText = meta[status].board;
+        }
+    });
+}
+
+function applyEmptyColumnStates(counts) {
+
+    ["todo", "doing1", "doing2", "done"].forEach(status => {
+        const col = document.getElementById("col-" + status);
+        if (!col) return;
+
+        if ((counts[status] || 0) === 0) {
+            col.classList.add("empty-col");
+        } else {
+            col.classList.remove("empty-col");
+        }
+    });
+}
 
 
 function applyTheme(theme) {
@@ -1278,6 +1534,16 @@ function applyTheme(theme) {
             "content",
             themeColors[safeTheme]
         );
+    }
+
+    refreshThemeStatusUI();
+
+    if (typeof renderBoard === "function") {
+        try {
+            renderBoard();
+        } catch (e) {
+            console.log("theme render skip:", e);
+        }
     }
 }
 
@@ -2061,10 +2327,10 @@ async function saveCloudBoard() {
                  onkeydown="handleTitleKeydown(event, this)">${task.title}</div>
             <div class="card-footer">
               <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">
-                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>🔵 해야할 업무</option>
-                <option value="doing1" ${task.status === 'doing1' ? 'selected' : ''}>🟠 진행 Ⅰ</option>
-                <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>🔶 진행 Ⅱ</option>
-                <option value="done" ${task.status === 'done' ? 'selected' : ''}>🟢 완료</option>
+                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>${getStatusOptionLabel('todo')}</option>
+                <option value="doing1" ${task.status === 'doing1' ? 'selected' : ''}>${getStatusOptionLabel('doing1')}</option>
+                <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>${getStatusOptionLabel('doing2')}</option>
+                <option value="done" ${task.status === 'done' ? 'selected' : ''}>${getStatusOptionLabel('done')}</option>
               </select>
               <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
             </div>
@@ -2121,10 +2387,10 @@ async function saveCloudBoard() {
             ${filesHtml}
             <div class="card-footer">
               <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">
-                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>🔵 해야할 업무</option>
-                <option value="doing1" ${task.status === 'doing1' ? 'selected' : ''}>🟠 진행 Ⅰ</option>
-                <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>🔶 진행 Ⅱ</option>
-                <option value="done" ${task.status === 'done' ? 'selected' : ''}>🟢 완료</option>
+                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>${getStatusOptionLabel('todo')}</option>
+                <option value="doing1" ${task.status === 'doing1' ? 'selected' : ''}>${getStatusOptionLabel('doing1')}</option>
+                <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>${getStatusOptionLabel('doing2')}</option>
+                <option value="done" ${task.status === 'done' ? 'selected' : ''}>${getStatusOptionLabel('done')}</option>
               </select>
               <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
             </div>
@@ -2143,6 +2409,9 @@ async function saveCloudBoard() {
       document.getElementById('tab-count-doing1').innerText = counts.doing1;
       document.getElementById('tab-count-doing2').innerText = counts.doing2;
       document.getElementById('tab-count-done').innerText = counts.done;
+
+      refreshThemeStatusUI();
+      applyEmptyColumnStates(counts);
     }
 
     /* ========================================================
