@@ -474,9 +474,130 @@
     resize: none;
   }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
 </head>
 <body>
 
+<!-- =====================================================
+     Supabase 로그인 화면
+===================================================== -->
+
+<div id="cloudLoginBox"
+     style="
+       position: fixed;
+       inset: 0;
+       z-index: 99999;
+       background: #0b1120;
+       display: none;
+       justify-content: center;
+       align-items: center;
+       padding: 20px;
+     ">
+
+    <div style="
+        width: 100%;
+        max-width: 380px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 14px;
+        padding: 24px;
+        color: white;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.45);
+    ">
+
+        <div style="
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        ">
+            🔐 업무 관리 보드 로그인
+        </div>
+
+        <div style="
+            color: #94a3b8;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        ">
+            처음 한 번만 로그인하면<br>
+            다음부터는 자동으로 로그인됩니다.
+        </div>
+
+
+        <input
+            id="cloudEmail"
+            type="email"
+            placeholder="이메일 주소"
+            autocomplete="username"
+            style="
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 10px;
+                border-radius: 8px;
+                border: 1px solid #475569;
+                background: #0f172a;
+                color: white;
+                font-size: 16px;
+                outline: none;
+            "
+        >
+
+
+        <input
+            id="cloudPassword"
+            type="password"
+            placeholder="비밀번호"
+            autocomplete="current-password"
+            style="
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 12px;
+                border-radius: 8px;
+                border: 1px solid #475569;
+                background: #0f172a;
+                color: white;
+                font-size: 16px;
+                outline: none;
+            "
+        >
+
+
+        <button
+            id="cloudLoginButton"
+            type="button"
+            onclick="cloudLogin()"
+            style="
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
+                background: #2563eb;
+                color: white;
+                font-size: 16px;
+                font-weight: 800;
+                cursor: pointer;
+            ">
+            로그인
+        </button>
+
+
+        <div
+            id="cloudLoginMessage"
+            style="
+                min-height: 20px;
+                margin-top: 12px;
+                color: #fca5a5;
+                font-size: 0.82rem;
+                line-height: 1.4;
+            ">
+        </div>
+
+    </div>
+
+</div>
+  
   <!-- Top Bar -->
   <header class="top-bar">
     <div class="app-title-wrap">
@@ -555,6 +676,29 @@
   <input type="file" id="backupFileInput" accept=".json" style="position:absolute;width:1px;height:1px;opacity:0;" onchange="importDataBackup(this)">
 
   <script>
+
+/* ========================================================
+   SUPABASE 클라우드 연결
+======================================================== */
+
+const SUPABASE_URL =
+    "https://urllarycsksfkuujmfzq.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_SJn53DGZEAy_yFOze9z9ow_X5v2OcAf";
+
+const sb = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+        }
+    }
+);
+    
     /* ========================================================
        1. 로컬 스토리지 하이브리드 엔진 (iPad WebKit 100% 호환)
     ======================================================== */
@@ -1086,25 +1230,9 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <script>
-
 if ("serviceWorker" in navigator) {
-
-navigator.serviceWorker.register(
-"service-worker.js"
-);
-
+    navigator.serviceWorker.register("service-worker.js");
 }
-
-<script>
-
-if ("serviceWorker" in navigator) {
-
-navigator.serviceWorker.register(
-"service-worker.js"
-);
-
-}
-
 </script>
   
 </body>
