@@ -1033,16 +1033,16 @@ body.theme-soul .storage-usage {
   .att-pill {
     background: var(--pill-bg);
     color: var(--text-main);
-    padding: 4px 8px;
+    padding: 6px 9px;
     border-radius: 5px;
     font-size: 0.72rem;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     border: 1px solid var(--pill-border);
   }
   .att-name {
-    max-width: 150px;
+    max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1050,43 +1050,89 @@ body.theme-soul .storage-usage {
     font-weight: 700;
   }
 
-  /* 첨부파일: 보기 / 저장 / 삭제를 명확히 분리 */
-  .att-file-actions {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-left: 2px;
-  }
-
-  .att-action {
-    background: var(--input-bg);
-    border: 1px solid var(--pill-border);
-    color: var(--link-color);
-    padding: 4px 7px;
-    border-radius: 5px;
-    font-size: 0.7rem;
-    font-weight: 800;
+  /* 첨부파일은 파일명만 표시하고, 누르면 보기/저장/삭제 선택창을 엽니다. */
+  .att-file-trigger {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    text-align: left;
     cursor: pointer;
-    white-space: nowrap;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
   }
 
-  .att-action:active {
+  .att-file-trigger:hover {
+    border-color: var(--link-color);
+  }
+
+  .att-file-trigger:active {
     background: var(--surface-3);
-    color: var(--text-main);
     transform: scale(0.98);
   }
 
-  .att-del {
-    background: transparent;
-    border: none;
-    color: var(--text-sub);
+  /* 첨부파일 동작 선택창 */
+  .attachment-action-modal-box {
+    max-width: 420px;
+  }
+
+  .attachment-action-file {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 12px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.4;
+    word-break: break-all;
+  }
+
+  .attachment-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .attachment-menu-btn {
+    width: 100%;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 800;
     cursor: pointer;
-    font-size: 0.8rem;
-    padding: 4px 5px;
+    user-select: none;
+    -webkit-user-select: none;
     touch-action: manipulation;
+  }
+
+  .attachment-menu-btn:active {
+    background: var(--surface-3);
+    transform: scale(0.99);
+  }
+
+  .attachment-menu-btn.primary {
+    color: var(--link-color);
+    border-color: var(--pill-border);
+  }
+
+  .attachment-menu-btn.danger {
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.45);
+  }
+
+  body.theme-light .attachment-menu-btn.danger {
+    color: #b91c1c;
   }
 
   /* Card Footer */
@@ -1862,6 +1908,23 @@ body.theme-soul .storage-usage {
       <div style="display:flex; justify-content:flex-end; gap:8px;">
         <button class="btn-sync" onclick="closeBackupModal()">닫기</button>
         <button class="btn-new-task" id="modalConfirmBtn" onclick="confirmModalAction()">복원 실행</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 업무 첨부파일 보기 / 저장 / 삭제 선택창 -->
+  <div class="modal-overlay" id="attachmentActionModal" onclick="if(event.target===this) closeAttachmentActionMenu()">
+    <div class="modal-box attachment-action-modal-box" role="dialog" aria-modal="true" aria-labelledby="attachmentActionTitle">
+      <h3 id="attachmentActionTitle" style="font-size:1.08rem; color:var(--text-main);">📎 첨부파일</h3>
+      <div class="attachment-action-file">
+        <span aria-hidden="true">📄</span>
+        <span id="attachmentActionFileName">첨부파일</span>
+      </div>
+      <div class="attachment-action-buttons">
+        <button class="attachment-menu-btn primary" type="button" onclick="runAttachmentAction('open')">👁 새 탭에서 보기</button>
+        <button class="attachment-menu-btn primary" type="button" onclick="runAttachmentAction('save')">⬇ 기기에 저장</button>
+        <button class="attachment-menu-btn danger" type="button" onclick="runAttachmentAction('delete')">🗑 첨부파일 삭제</button>
+        <button class="attachment-menu-btn" type="button" onclick="closeAttachmentActionMenu()">취소</button>
       </div>
     </div>
   </div>
@@ -4268,14 +4331,12 @@ async function saveCloudBoard() {
                 </div>
                 <div class="att-list">
                   ${files.length > 0 ? files.map((file, idx) => `
-                    <div class="att-pill">
-                      <span class="att-name" title="${escapeHtml(file.name || '')}">${escapeHtml(file.name || '첨부파일')}</span>
-                      <span class="att-file-actions">
-                        <button class="att-action" type="button" onclick="openAttachmentFile('${task.id}', ${idx})" title="새 탭에서 보기">👁 보기</button>
-                        <button class="att-action" type="button" onclick="saveAttachmentFile('${task.id}', ${idx})" title="기기에 저장">⬇ 저장</button>
-                        <button class="att-del" type="button" onclick="deleteAttachment('${task.id}', ${idx})" title="첨부파일 삭제">✕</button>
-                      </span>
-                    </div>
+                    <button class="att-pill att-file-trigger" type="button"
+                            onclick="openAttachmentActionMenu('${task.id}', ${idx})"
+                            title="클릭하여 보기·저장·삭제 선택">
+                      <span aria-hidden="true">📎</span>
+                      <span class="att-name">${escapeHtml(file.name || '첨부파일')}</span>
+                    </button>
                   `).join('') : `<span style="font-size:.73rem;color:var(--text-sub);">등록된 붙임파일이 없습니다.</span>`}
                 </div>
               </div>
@@ -4332,14 +4393,12 @@ async function saveCloudBoard() {
               </div>
               <div class="att-list">
                 ${files.map((file, idx) => `
-                  <div class="att-pill">
-                    <span class="att-name" title="${escapeHtml(file.name || '')}">${escapeHtml(file.name || '첨부파일')}</span>
-                    <span class="att-file-actions">
-                      <button class="att-action" type="button" onclick="openAttachmentFile('${task.id}', ${idx})" title="새 탭에서 보기">👁 보기</button>
-                      <button class="att-action" type="button" onclick="saveAttachmentFile('${task.id}', ${idx})" title="기기에 저장">⬇ 저장</button>
-                      <button class="att-del" type="button" onclick="deleteAttachment('${task.id}', ${idx})" title="첨부파일 삭제">✕</button>
-                    </span>
-                  </div>
+                  <button class="att-pill att-file-trigger" type="button"
+                          onclick="openAttachmentActionMenu('${task.id}', ${idx})"
+                          title="클릭하여 보기·저장·삭제 선택">
+                    <span aria-hidden="true">📎</span>
+                    <span class="att-name">${escapeHtml(file.name || '첨부파일')}</span>
+                  </button>
                 `).join('')}
               </div>
             </div>
@@ -4791,10 +4850,13 @@ async function attachFiles(
 
 
 /* ========================================================
-   첨부파일 보기 / 저장
+   첨부파일 선택창 / 보기 / 저장
+   - 파일명 클릭: 보기·저장·삭제 선택창 표시
    - 보기: 업무보드는 유지하고 새 탭에서 파일 표시
    - 저장: iPad/iPhone은 공유 시트, PC는 직접 다운로드
 ======================================================== */
+
+let currentAttachmentAction = null;
 
 function getTaskAttachment(taskId, fileIdx) {
     const task = tasksData.find(t => t.id === taskId);
@@ -4808,6 +4870,63 @@ function getTaskAttachment(taskId, fileIdx) {
     }
 
     return task.files[fileIdx];
+}
+
+function openAttachmentActionMenu(taskId, fileIdx) {
+    const file = getTaskAttachment(taskId, fileIdx);
+    if (!file) return;
+
+    currentAttachmentAction = {
+        taskId: taskId,
+        fileIdx: fileIdx
+    };
+
+    const fileNameEl = document.getElementById("attachmentActionFileName");
+    const modal = document.getElementById("attachmentActionModal");
+
+    if (fileNameEl) {
+        fileNameEl.textContent = file.name || "첨부파일";
+    }
+
+    if (modal) {
+        modal.style.display = "flex";
+    }
+}
+
+function closeAttachmentActionMenu() {
+    const modal = document.getElementById("attachmentActionModal");
+
+    if (modal) {
+        modal.style.display = "none";
+    }
+
+    currentAttachmentAction = null;
+}
+
+async function runAttachmentAction(action) {
+    if (!currentAttachmentAction) return;
+
+    const target = {
+        taskId: currentAttachmentAction.taskId,
+        fileIdx: currentAttachmentAction.fileIdx
+    };
+
+    /* 선택창을 먼저 닫고 기존의 보기/저장/삭제 기능을 그대로 호출 */
+    closeAttachmentActionMenu();
+
+    if (action === "open") {
+        await openAttachmentFile(target.taskId, target.fileIdx);
+        return;
+    }
+
+    if (action === "save") {
+        await saveAttachmentFile(target.taskId, target.fileIdx);
+        return;
+    }
+
+    if (action === "delete") {
+        await deleteAttachment(target.taskId, target.fileIdx);
+    }
 }
 
 function validateCurrentStorageAttachment(file) {
@@ -5070,6 +5189,7 @@ async function deleteAttachment(
 
       const columnModal = document.getElementById("columnSettingsModal");
       const referenceModal = document.getElementById("referenceModal");
+      const attachmentActionModal = document.getElementById("attachmentActionModal");
 
       if (columnModal && columnModal.style.display === "flex") {
         closeColumnSettings();
@@ -5077,6 +5197,10 @@ async function deleteAttachment(
 
       if (referenceModal && referenceModal.style.display === "flex") {
         closeReferenceLibrary();
+      }
+
+      if (attachmentActionModal && attachmentActionModal.style.display === "flex") {
+        closeAttachmentActionMenu();
       }
     });
 
