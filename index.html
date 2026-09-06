@@ -1921,7 +1921,7 @@ body.theme-soul .storage-usage {
         <span id="attachmentActionFileName">첨부파일</span>
       </div>
       <div class="attachment-action-buttons">
-        <button class="attachment-menu-btn primary" type="button" onclick="runAttachmentAction('open')">👁 새 탭에서 보기</button>
+        <button class="attachment-menu-btn primary" id="attachmentOpenActionButton" type="button" onclick="runAttachmentAction('open')">👁 새 탭에서 보기</button>
         <button class="attachment-menu-btn primary" type="button" onclick="runAttachmentAction('save')">⬇ 기기에 저장</button>
         <button class="attachment-menu-btn danger" type="button" onclick="runAttachmentAction('delete')">🗑 첨부파일 삭제</button>
         <button class="attachment-menu-btn" type="button" onclick="closeAttachmentActionMenu()">취소</button>
@@ -4052,6 +4052,77 @@ async function saveCloudBoard() {
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     }
 
+    /* PDF 여부는 MIME type과 파일 확장자를 함께 확인 */
+    function isPdfFile(fileName, fileType) {
+      const normalizedType = String(fileType || "").toLowerCase();
+      const normalizedName = String(fileName || "").trim().toLowerCase();
+
+      return normalizedType === "application/pdf" || normalizedName.endsWith(".pdf");
+    }
+
+    /*
+       iPad/iPhone에서 PDF '열기'를 눌렀을 때 Safari PDF 뷰어로 바로 보내지 않고
+       iOS 공유 시트(앱 선택창)를 띄워 Polaris Office, 미리보기 등으로 넘길 수 있게 합니다.
+       공유 시트를 사용할 수 없으면 false를 반환하여 기존 Safari 새 탭 방식으로 대체합니다.
+    */
+    async function openPdfWithIOSAppChooser(path, fileName, fileType, statusLabel) {
+      if (!path || !isIOSLikeDevice()) return false;
+
+      const label = statusLabel || "PDF";
+      const safeName = String(fileName || "문서.pdf").trim() || "문서.pdf";
+
+      setCloudSyncStatus("syncing", "☁ " + label + " 앱 선택 준비 중...");
+
+      try {
+        const { data: blob, error } = await sb.storage
+          .from("attachments")
+          .download(path);
+
+        if (error || !blob) {
+          throw error || new Error("PDF 다운로드 실패");
+        }
+
+        if (typeof File === "undefined") {
+          return false;
+        }
+
+        const mimeType =
+          (fileType && fileType !== "application/octet-stream")
+            ? fileType
+            : (blob.type || "application/pdf");
+
+        const shareFile = new File([blob], safeName, { type: mimeType });
+
+        if (
+          navigator.share &&
+          navigator.canShare &&
+          navigator.canShare({ files: [shareFile] })
+        ) {
+          try {
+            await navigator.share({
+              title: safeName,
+              files: [shareFile]
+            });
+
+            setCloudSyncStatus("synced", "☁ 동기화 완료");
+            return true;
+          } catch (shareError) {
+            /* 사용자가 앱 선택창을 닫은 경우에는 Safari로 강제 전환하지 않음 */
+            if (shareError && shareError.name === "AbortError") {
+              setCloudSyncStatus("synced", "☁ 동기화 완료");
+              return true;
+            }
+
+            console.warn("iPad/iPhone PDF 앱 선택창 실행 실패 - Safari 새 탭으로 전환:", shareError);
+          }
+        }
+      } catch (error) {
+        console.warn("iPad/iPhone PDF 앱 선택 준비 실패 - Safari 새 탭으로 전환:", error);
+      }
+
+      return false;
+    }
+
     function openFileLoadingTab(displayName) {
       /*
          iPad Safari는 비동기 작업(await) 이후 window.open()을 호출하면
@@ -4882,10 +4953,26 @@ function openAttachmentActionMenu(taskId, fileIdx) {
     };
 
     const fileNameEl = document.getElementById("attachmentActionFileName");
+    const openButton = document.getElementById("attachmentOpenActionButton");
     const modal = document.getElementById("attachmentActionModal");
 
     if (fileNameEl) {
         fileNameEl.textContent = file.name || "첨부파일";
+    }
+
+    /* iPad/iPhone의 PDF만 '앱 선택하여 열기'로 안내 */
+    if (openButton) {
+        const useIOSPdfChooser =
+            isIOSLikeDevice() &&
+            isPdfFile(file.name, file.type);
+
+        openButton.textContent = useIOSPdfChooser
+            ? "📱 앱 선택하여 열기"
+            : "👁 새 탭에서 보기";
+
+        openButton.title = useIOSPdfChooser
+            ? "Polaris Office, 미리보기 등 설치된 앱으로 열기"
+            : "새 탭에서 파일 보기";
     }
 
     if (modal) {
@@ -4945,6 +5032,27 @@ function validateCurrentStorageAttachment(file) {
 async function openAttachmentFile(taskId, fileIdx) {
     const file = getTaskAttachment(taskId, fileIdx);
     if (!validateCurrentStorageAttachment(file)) return;
+
+    /*
+       iPad/iPhone + PDF만 iOS 앱 선택창으로 전달합니다.
+       HWP/HWPX/Office/이미지 등은 기존 새 탭 열기 방식을 그대로 유지합니다.
+       앱 선택창을 지원하지 않는 환경이면 PDF도 기존 Safari 새 탭 방식으로 자동 대체합니다.
+    */
+    if (
+        isIOSLikeDevice() &&
+        isPdfFile(file.name, file.type)
+    ) {
+        const openedWithAppChooser = await openPdfWithIOSAppChooser(
+            file.path,
+            file.name || "문서.pdf",
+            file.type || "application/pdf",
+            "PDF"
+        );
+
+        if (openedWithAppChooser) {
+            return;
+        }
+    }
 
     await openStorageFileInNewTab(
         file.path,
