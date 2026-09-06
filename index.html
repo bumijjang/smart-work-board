@@ -473,6 +473,8 @@ body.theme-soul .att-pill {
 /* 하단 상태선택/삭제 */
 body.theme-soul .move-select,
 body.theme-soul .btn-del-card,
+body.theme-soul .btn-order,
+body.theme-soul .drag-handle,
 body.theme-soul .theme-select {
   background: rgba(6,11,18,.88);
   border: 1px solid rgba(86,126,157,.54);
@@ -955,6 +957,64 @@ body.theme-light .cloud-sync-status.error { color: #b91c1c; }
     border-radius: 5px;
     font-size: 0.75rem;
     cursor: pointer;
+  }
+
+
+  /* 카드 순서 변경 컨트롤 */
+  .order-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+  }
+  .btn-order,
+  .drag-handle {
+    min-width: 30px;
+    height: 28px;
+    padding: 0 7px;
+    border-radius: 5px;
+    border: 1px solid var(--pill-border);
+    background: var(--input-bg);
+    color: var(--text-sub);
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .btn-order:active,
+  .drag-handle:active {
+    background: var(--surface-3);
+    color: var(--text-main);
+  }
+  .btn-order:disabled {
+    opacity: 0.28;
+    cursor: default;
+  }
+  .drag-handle {
+    cursor: grab;
+  }
+  .drag-handle:active { cursor: grabbing; }
+
+  /* 설정 메뉴처럼 보이는 세로 점 3개 대신, '잡아서 이동' 의미의 6점 그립 */
+  .grip-dots {
+    display: grid;
+    grid-template-columns: repeat(2, 3px);
+    grid-template-rows: repeat(3, 3px);
+    gap: 3px;
+    align-items: center;
+    justify-items: center;
+  }
+
+  .grip-dots span {
+    display: block;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
   }
 
   /* Modal (iPad 터치 백업/복원 텍스트 지원) */
@@ -2245,24 +2305,34 @@ async function saveCloudBoard() {
 
       const counts = { todo: 0, doing1: 0, doing2: 0, done: 0 };
 
+      // 기존 데이터 상태값을 먼저 정규화하고 각 컬럼의 현재 순서를 계산
       tasksData.forEach(task => {
         if (task.status === 'doing') task.status = 'doing1';
         if (!lists[task.status]) task.status = 'todo';
+      });
+
+      const statusTaskIds = { todo: [], doing1: [], doing2: [], done: [] };
+      tasksData.forEach(task => statusTaskIds[task.status].push(task.id));
+
+      tasksData.forEach(task => {
         counts[task.status]++;
 
         const isDone = task.status === 'done';
         const dDay = getDDay(task.dueDate);
+        const statusIndex = statusTaskIds[task.status].indexOf(task.id);
+        const canMoveUp = statusIndex > 0;
+        const canMoveDown = statusIndex < statusTaskIds[task.status].length - 1;
 
         const card = document.createElement('div');
         card.className = `task-card ${isDone ? 'done-compact' : ''}`;
-        card.draggable = true;
         card.id = task.id;
 
-        card.ondragstart = (e) => handleDragStart(e, task.id);
-        card.ondragend = handleDragEnd;
+        // 카드 자체 드래그는 끄고 6점 그립 핸들만 드래그 가능하게 하여
+        // 기존 '카드에 파일 드롭' 기능과 업무 순서 드래그를 충돌 없이 구분
+        card.draggable = false;
         card.ondragover = (e) => { e.preventDefault(); card.classList.add('dragover-card'); };
         card.ondragleave = () => card.classList.remove('dragover-card');
-        card.ondrop = (e) => handleCardFileDrop(e, task.id);
+        card.ondrop = (e) => handleCardDrop(e, task.id);
 
         if (isDone) {
           card.innerHTML = `
@@ -2280,7 +2350,12 @@ async function saveCloudBoard() {
                 <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>${getStatusOptionLabel('doing2')}</option>
                 <option value="done" ${task.status === 'done' ? 'selected' : ''}>${getStatusOptionLabel('done')}</option>
               </select>
-              <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
+              <div class="order-controls">
+                <button class="btn-order" type="button" title="한 칸 위로" ${canMoveUp ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', -1)">▲</button>
+                <button class="btn-order" type="button" title="한 칸 아래로" ${canMoveDown ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', 1)">▼</button>
+                <button class="drag-handle" type="button" title="PC: 드래그하여 순서 변경" aria-label="드래그하여 업무 순서 변경" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)"><span class="grip-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></span></button>
+                <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
+              </div>
             </div>
           `;
         } else {
@@ -2340,7 +2415,12 @@ async function saveCloudBoard() {
                 <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>${getStatusOptionLabel('doing2')}</option>
                 <option value="done" ${task.status === 'done' ? 'selected' : ''}>${getStatusOptionLabel('done')}</option>
               </select>
-              <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
+              <div class="order-controls">
+                <button class="btn-order" type="button" title="한 칸 위로" ${canMoveUp ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', -1)">▲</button>
+                <button class="btn-order" type="button" title="한 칸 아래로" ${canMoveDown ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', 1)">▼</button>
+                <button class="drag-handle" type="button" title="PC: 드래그하여 순서 변경" aria-label="드래그하여 업무 순서 변경" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)"><span class="grip-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></span></button>
+                <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
+              </div>
             </div>
           `;
         }
@@ -2500,23 +2580,32 @@ async function handleDirectFileSelected(input) {
 }
 
 
-/* PC에서 카드로 파일 드래그 */
-function handleCardFileDrop(e, taskId) {
+/* 카드 드롭 처리: 첨부파일 드롭과 업무 순서 드롭을 구분 */
+function handleCardDrop(e, targetTaskId) {
 
     e.preventDefault();
+    e.stopPropagation();
 
-    e.currentTarget.classList.remove(
-        "dragover-card"
-    );
+    e.currentTarget.classList.remove("dragover-card");
 
-    if (
-        e.dataTransfer.files.length > 0
-    ) {
+    const droppedFiles =
+        e.dataTransfer && e.dataTransfer.files
+            ? e.dataTransfer.files
+            : null;
 
-        attachFiles(
-            taskId,
-            e.dataTransfer.files
-        );
+    // 1) 실제 파일을 드롭한 경우: 기존 첨부파일 기능 유지
+    if (droppedFiles && droppedFiles.length > 0) {
+        attachFiles(targetTaskId, droppedFiles);
+        return;
+    }
+
+    // 2) 업무 카드의 6점 그립 핸들을 드래그한 경우: 카드 순서 변경
+    if (draggedId) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const insertAfter = e.clientY > rect.top + (rect.height / 2);
+
+        reorderTaskRelative(draggedId, targetTaskId, insertAfter);
+        draggedId = null;
     }
 }
 
@@ -2919,25 +3008,110 @@ async function deleteAttachment(
 }
 
     /* ========================================================
-       8. 드래그 앤 드롭
+       8. 업무 카드 순서 변경 / 드래그 앤 드롭
+       - ▲ / ▼ : PC와 iPad 모두 안정적으로 사용
+       - 6점 그립 핸들 : PC에서 드래그하여 같은 컬럼 또는 다른 컬럼으로 이동
+       - tasksData 배열 순서 자체를 바꾸므로 localStorage + Supabase에 그대로 저장됨
     ======================================================== */
     let draggedId = null;
+
+    function moveTaskWithinStatus(id, direction) {
+      const currentIndex = tasksData.findIndex(t => t.id === id);
+      if (currentIndex < 0) return;
+
+      const task = tasksData[currentIndex];
+      const sameStatusIndexes = [];
+
+      tasksData.forEach((item, index) => {
+        if (item.status === task.status) sameStatusIndexes.push(index);
+      });
+
+      const position = sameStatusIndexes.indexOf(currentIndex);
+      const targetPosition = position + direction;
+
+      if (position < 0 || targetPosition < 0 || targetPosition >= sameStatusIndexes.length) return;
+
+      const targetIndex = sameStatusIndexes[targetPosition];
+      [tasksData[currentIndex], tasksData[targetIndex]] =
+        [tasksData[targetIndex], tasksData[currentIndex]];
+
+      saveAll();
+    }
+
     function handleDragStart(e, id) {
-      if (e.target.getAttribute('contenteditable') === 'true') {
-        e.preventDefault();
-        return;
-      }
       draggedId = id;
-      e.target.classList.add('dragging');
+
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', id);
+      }
+
+      const card = document.getElementById(id);
+      if (card) card.classList.add('dragging');
+      e.stopPropagation();
     }
+
     function handleDragEnd(e) {
-      e.target.classList.remove('dragging');
+      document.querySelectorAll('.task-card').forEach(card => {
+        card.classList.remove('dragging', 'dragover-card');
+      });
+      draggedId = null;
     }
-    function allowDrop(e) { e.preventDefault(); }
+
+    function allowDrop(e) {
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    }
+
+    // 특정 카드의 위/아래에 삽입
+    function reorderTaskRelative(sourceId, targetId, insertAfter) {
+      if (!sourceId || !targetId || sourceId === targetId) return;
+
+      const sourceIndex = tasksData.findIndex(t => t.id === sourceId);
+      const targetTask = tasksData.find(t => t.id === targetId);
+      if (sourceIndex < 0 || !targetTask) return;
+
+      const [movingTask] = tasksData.splice(sourceIndex, 1);
+      movingTask.status = targetTask.status;
+
+      let targetIndex = tasksData.findIndex(t => t.id === targetId);
+      if (targetIndex < 0) {
+        tasksData.push(movingTask);
+      } else {
+        if (insertAfter) targetIndex += 1;
+        tasksData.splice(targetIndex, 0, movingTask);
+      }
+
+      saveAll();
+    }
+
+    // 컬럼 빈 영역에 드롭하면 해당 컬럼 맨 아래로 이동
+    function moveTaskToStatusEnd(id, targetStatus) {
+      const sourceIndex = tasksData.findIndex(t => t.id === id);
+      if (sourceIndex < 0) return;
+
+      const [movingTask] = tasksData.splice(sourceIndex, 1);
+      movingTask.status = targetStatus;
+
+      let insertIndex = -1;
+      for (let i = tasksData.length - 1; i >= 0; i--) {
+        if (tasksData[i].status === targetStatus) {
+          insertIndex = i + 1;
+          break;
+        }
+      }
+
+      if (insertIndex < 0) tasksData.push(movingTask);
+      else tasksData.splice(insertIndex, 0, movingTask);
+
+      saveAll();
+    }
+
     function handleDrop(e, targetStatus) {
       e.preventDefault();
+
       if (draggedId) {
-        changeTaskStatus(draggedId, targetStatus);
+        moveTaskToStatusEnd(draggedId, targetStatus);
         draggedId = null;
       }
     }
