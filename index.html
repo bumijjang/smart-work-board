@@ -1376,9 +1376,12 @@ body.theme-soul .storage-usage {
   }
 
   .reference-modal-box {
-    max-width: 920px;
+    /* 자료보관함은 웹보드 위에 뜨는 보조창으로 유지하면서 가독성만 소폭 확대 */
+    width: min(980px, calc(100vw - 64px));
+    max-width: 980px;
     max-height: 88vh;
     overflow: hidden;
+    padding: 18px;
   }
 
   .reference-header {
@@ -1403,10 +1406,10 @@ body.theme-soul .storage-usage {
     background: var(--input-bg);
     color: var(--text-main);
     border: 1px solid var(--border-color);
-    border-radius: 7px;
-    padding: 9px 10px;
+    border-radius: 8px;
+    padding: 11px 12px;
     outline: none;
-    font-size: 0.84rem;
+    font-size: 0.9rem;
   }
 
   .reference-form textarea {
@@ -1439,43 +1442,48 @@ body.theme-soul .storage-usage {
     overflow: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding-right: 3px;
+    gap: 12px;
+    padding-right: 5px;
   }
 
   .reference-item {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-    padding: 11px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--panel-border);
+    gap: 12px;
+    padding: 15px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
     background: var(--panel-bg);
   }
 
   .reference-title {
     color: var(--text-main);
-    font-size: 0.9rem;
-    font-weight: 800;
-    word-break: break-word;
+    font-size: 1.05rem;
+    line-height: 1.45;
+    font-weight: 850;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
   }
 
   /* 자료보관함도 업무 첨부파일과 동일하게 파일명을 눌러 동작 선택창을 엽니다. */
   .reference-file-trigger {
+    margin-top: 9px;
     appearance: none;
     -webkit-appearance: none;
     width: 100%;
+    min-height: 54px;
     display: flex;
     align-items: center;
-    gap: 7px;
-    padding: 8px 9px;
-    border-radius: 7px;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 9px;
     border: 1px solid var(--pill-border);
     background: var(--pill-bg);
     color: var(--text-main);
     font: inherit;
-    font-size: 0.9rem;
-    font-weight: 800;
+    font-size: 0.98rem;
+    line-height: 1.4;
+    font-weight: 850;
     text-align: left;
     cursor: pointer;
     user-select: none;
@@ -1494,25 +1502,26 @@ body.theme-soul .storage-usage {
 
   .reference-file-trigger .reference-file-name {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .reference-meta {
-    margin-top: 5px;
+    margin-top: 8px;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 10px;
+    gap: 7px 12px;
     color: var(--text-sub);
-    font-size: 0.72rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
   }
 
   .reference-memo {
-    margin-top: 6px;
+    margin-top: 8px;
     color: var(--text-sub);
-    font-size: 0.78rem;
-    line-height: 1.45;
+    font-size: 0.86rem;
+    line-height: 1.55;
     white-space: pre-wrap;
   }
 
@@ -1592,9 +1601,26 @@ body.theme-soul .storage-usage {
     border-top: 1px solid var(--divider-color);
   }
 
+  @media (max-width: 1100px) {
+    .reference-modal-box {
+      width: min(92vw, 920px);
+      max-width: 920px;
+      max-height: 90vh;
+      padding: 17px;
+    }
+    .reference-title { font-size: 1.05rem; }
+    .reference-file-trigger {
+      min-height: 54px;
+      padding: 12px 14px;
+      font-size: 0.98rem;
+    }
+    .reference-meta { font-size: 0.8rem; }
+    .reference-memo { font-size: 0.86rem; }
+  }
+
   @media (max-width: 700px) {
     .column-settings-grid { grid-template-columns: 1fr; }
-    .reference-modal-box { max-height: 94vh; padding: 14px; }
+    .reference-modal-box { width: 92vw; max-width: 92vw; max-height: 90vh; padding: 14px; }
     .reference-toolbar { grid-template-columns: 1fr; }
     .reference-form { grid-template-columns: 1fr; }
     .reference-form .full,
@@ -1618,6 +1644,12 @@ body.theme-soul .storage-usage {
     z-index: 2000;
     padding: 16px;
   }
+
+  /* 자료보관함 위에서도 파일 동작 선택창이 즉시 보이도록 최상단에 표시 */
+  #attachmentActionModal {
+    z-index: 2300;
+  }
+
   .modal-box {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -2019,8 +2051,8 @@ body.theme-soul .storage-usage {
     <div class="modal-box reference-modal-box">
       <div class="reference-header">
         <div>
-          <h3 style="font-size:1.12rem; color:var(--text-main);">📚 자료보관함</h3>
-          <div style="margin-top:4px;font-size:.76rem;color:var(--text-sub);">
+          <h3 style="font-size:1.28rem; color:var(--text-main);">📚 자료보관함</h3>
+          <div style="margin-top:5px;font-size:.84rem;line-height:1.45;color:var(--text-sub);">
             특정 업무와 무관하게 반복해서 참고할 문서·지침·매뉴얼을 보관합니다.
           </div>
         </div>
@@ -3776,18 +3808,18 @@ async function saveCloudBoard() {
         return `
           <div class="reference-item">
             <div>
+              <div class="reference-title">${escapeHtml(item.title || "참고자료")}</div>
               <button
                 class="reference-file-trigger"
                 type="button"
                 onclick="openReferenceActionMenu(${index})"
-                title="파일 동작 선택"
+                title="첨부파일 보기·저장·삭제"
               >
-                <span aria-hidden="true">📄</span>
-                <span class="reference-file-name">${escapeHtml(item.title || item.name || "참고자료")}</span>
+                <span aria-hidden="true">📎</span>
+                <span class="reference-file-name">첨부파일 · ${escapeHtml(item.name || "첨부파일")}</span>
               </button>
               <div class="reference-meta">
                 <span>🏷 ${escapeHtml(item.category || "기타")}</span>
-                <span>📄 ${escapeHtml(item.name || "")}</span>
                 <span>💾 ${formatStorageBytes(item.size || 0)}</span>
                 <span>🗓 ${escapeHtml(createdDate)}</span>
               </div>
@@ -5412,16 +5444,19 @@ async function deleteAttachment(
       const referenceModal = document.getElementById("referenceModal");
       const attachmentActionModal = document.getElementById("attachmentActionModal");
 
+      /* 파일 동작 선택창이 떠 있으면 그 창만 먼저 닫고 자료보관함은 유지 */
+      if (attachmentActionModal && attachmentActionModal.style.display === "flex") {
+        closeAttachmentActionMenu();
+        return;
+      }
+
       if (columnModal && columnModal.style.display === "flex") {
         closeColumnSettings();
+        return;
       }
 
       if (referenceModal && referenceModal.style.display === "flex") {
         closeReferenceLibrary();
-      }
-
-      if (attachmentActionModal && attachmentActionModal.style.display === "flex") {
-        closeAttachmentActionMenu();
       }
     });
 
