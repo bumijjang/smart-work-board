@@ -2009,75 +2009,34 @@ async function refreshStorageUsage() {
 
 /* ========================================================
    업무보드 전체 새로고침
-   - PC의 F5와 같은 window.location.reload() 사용
-   - 버튼 클릭 직전 편집 중인 항목을 blur하여 저장 이벤트 실행
-   - 대기 중인 클라우드 저장이 있으면 먼저 저장 시도 후 새로고침
+   - PC의 F5와 동일하게 "현재 페이지를 다시 불러오기"만 수행
+   - 새로고침 직전에 현재 기기의 tasksData를 클라우드에 저장하지 않음
+   - 다른 기기(PC/iPad)의 최신 데이터를 덮어쓰는 문제 방지
 ======================================================== */
-async function refreshBoardPage(button) {
+function refreshBoardPage(button) {
 
     if (button) {
         button.disabled = true;
         button.innerText = "🔄 새로고침 중...";
     }
 
-
-    try {
-
-        /*
-           제목/업무명/세부업무 등 편집 중이었다면
-           blur 이벤트를 먼저 발생시켜 기존 저장 로직 실행
-        */
-        const activeElement =
-            document.activeElement;
-
-        if (
-            activeElement &&
-            typeof activeElement.blur === "function"
-        ) {
-            activeElement.blur();
-        }
-
-
-        /*
-           blur/change 이벤트가 반영될 짧은 시간 확보
-        */
-        await new Promise(resolve =>
-            setTimeout(resolve, 100)
-        );
-
-
-        /*
-           saveAll()의 500ms 예약 저장이 남아 있으면
-           중복 호출을 막고 지금 바로 저장
-        */
-        if (cloudReady) {
-
-            if (cloudSaveTimer) {
-                clearTimeout(cloudSaveTimer);
-                cloudSaveTimer = null;
-            }
-
-            await saveCloudBoard();
-        }
-
-
-    } catch (error) {
-
-        /*
-           클라우드 저장 중 문제가 있어도
-           기존 localStorage 데이터는 그대로 유지되므로
-           새로고침 자체는 진행
-        */
-        console.warn(
-            "새로고침 전 저장 처리 중 오류:",
-            error
-        );
+    /*
+       이 기기에서 예약되어 있던 500ms 지연 저장은 취소합니다.
+       새로고침의 목적은 클라우드 최신 데이터를 다시 읽는 것이므로
+       현재 기기의 오래된 상태를 먼저 업로드하면 안 됩니다.
+    */
+    if (cloudSaveTimer) {
+        clearTimeout(cloudSaveTimer);
+        cloudSaveTimer = null;
     }
 
-
     /*
-       PC의 F5와 같은 전체 페이지 새로고침
+       새로고침 직전 추가 저장 예약을 막고,
+       페이지가 다시 열리면 initCloud() -> loadCloudBoard()가
+       Supabase의 최신 board_state를 읽어옵니다.
     */
+    cloudReady = false;
+
     window.location.reload();
 }
 
@@ -3244,12 +3203,25 @@ async function attachFiles(
     if (successCount > 0) {
 
         /*
-           파일 경로를 board_state에도 저장
+           1) 로컬 화면/캐시에 즉시 반영
+           2) 첨부파일 메타데이터(name/type/size/path)는
+              500ms 지연 저장에 맡기지 않고 즉시 Supabase에 확정
+           → 업로드 직후 다른 기기에서 새로고침해도 파일 목록이 보이도록 함
         */
         saveAll();
 
+        if (cloudReady) {
+
+            if (cloudSaveTimer) {
+                clearTimeout(cloudSaveTimer);
+                cloudSaveTimer = null;
+            }
+
+            await saveCloudBoard();
+        }
+
         /* 파일 업로드 직후 Storage 사용량 자동 갱신 */
-        refreshStorageUsage();
+        await refreshStorageUsage();
 
     } else {
 
@@ -3442,10 +3414,25 @@ async function deleteAttachment(
     );
 
 
+    /*
+       삭제 결과도 즉시 클라우드에 확정합니다.
+       Storage에서는 파일이 지워졌는데 board_state에는 남아 있는
+       불일치 상태를 최소화합니다.
+    */
     saveAll();
 
+    if (cloudReady) {
+
+        if (cloudSaveTimer) {
+            clearTimeout(cloudSaveTimer);
+            cloudSaveTimer = null;
+        }
+
+        await saveCloudBoard();
+    }
+
     /* 실제 Storage 파일 삭제 후 사용량 자동 갱신 */
-    refreshStorageUsage();
+    await refreshStorageUsage();
 }
 
     /* ========================================================
