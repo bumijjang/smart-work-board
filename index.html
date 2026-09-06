@@ -1131,6 +1131,287 @@ body.theme-soul .storage-usage {
     background: currentColor;
   }
 
+  /* ========================================================
+     컬럼 제목 사용자 설정
+  ======================================================== */
+  .col-title.editable-title {
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .col-title.editable-title::after {
+    content: "✎";
+    margin-left: 4px;
+    font-size: 0.68em;
+    opacity: 0.42;
+    color: var(--text-sub);
+    transition: opacity 0.15s ease;
+  }
+
+  .col-title.editable-title:hover::after,
+  .col-title.editable-title:active::after {
+    opacity: 0.95;
+  }
+
+  .column-settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 150px;
+    gap: 12px;
+  }
+
+  .setting-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .setting-field label {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: var(--text-sub);
+  }
+
+  .setting-input,
+  .setting-select {
+    width: 100%;
+    background: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 10px;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .setting-input:focus,
+  .setting-select:focus {
+    border-color: var(--todo-color);
+  }
+
+  .setting-color-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .setting-color {
+    width: 48px;
+    height: 38px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    border-radius: 7px;
+    padding: 2px;
+    cursor: pointer;
+  }
+
+  .column-preview {
+    margin-top: 2px;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    font-weight: 800;
+  }
+
+  /* ========================================================
+     완료 업무 첨부파일 접기/펼치기
+  ======================================================== */
+  .done-attachments {
+    border-top: 1px dashed var(--divider-color);
+    padding-top: 7px;
+  }
+
+  .done-attachments summary {
+    list-style: none;
+    cursor: pointer;
+    color: var(--link-color);
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .done-attachments summary::-webkit-details-marker { display: none; }
+
+  .done-attachments summary::after {
+    content: "▾";
+    color: var(--text-sub);
+    transition: transform 0.15s ease;
+  }
+
+  .done-attachments[open] summary::after {
+    transform: rotate(180deg);
+  }
+
+  .done-attachments .attachments-section {
+    margin-top: 8px;
+    border-top: none;
+    padding-top: 0;
+  }
+
+  /* ========================================================
+     자료보관함
+  ======================================================== */
+  .btn-reference {
+    background: var(--pill-bg);
+    color: var(--text-sub);
+    border: 1px solid var(--pill-border);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.84rem;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  .btn-reference:active {
+    background: var(--surface-3);
+    color: var(--text-main);
+    transform: scale(0.98);
+  }
+
+  body.theme-soul .btn-reference {
+    background: rgba(6,11,18,.88);
+    border-color: rgba(86,126,157,.54);
+    color: #fff9ef;
+  }
+
+  .reference-modal-box {
+    max-width: 920px;
+    max-height: 88vh;
+    overflow: hidden;
+  }
+
+  .reference-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .reference-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 170px auto;
+    gap: 8px;
+  }
+
+  .reference-toolbar input,
+  .reference-toolbar select,
+  .reference-form input,
+  .reference-form select,
+  .reference-form textarea {
+    width: 100%;
+    background: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 9px 10px;
+    outline: none;
+    font-size: 0.84rem;
+  }
+
+  .reference-form textarea {
+    min-height: 82px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .reference-form {
+    display: none;
+    grid-template-columns: 1.2fr 0.7fr;
+    gap: 9px;
+    padding: 12px;
+    border-radius: 9px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+  }
+
+  .reference-form.show { display: grid; }
+  .reference-form .full { grid-column: 1 / -1; }
+
+  .reference-form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .reference-list {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 3px;
+  }
+
+  .reference-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 11px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+  }
+
+  .reference-title {
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 800;
+    word-break: break-word;
+  }
+
+  .reference-meta {
+    margin-top: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    color: var(--text-sub);
+    font-size: 0.72rem;
+  }
+
+  .reference-memo {
+    margin-top: 6px;
+    color: var(--text-sub);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+
+  .reference-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .reference-empty {
+    padding: 34px 12px;
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 0.84rem;
+    border: 1px dashed var(--border-color);
+    border-radius: 9px;
+  }
+
+  @media (max-width: 700px) {
+    .column-settings-grid { grid-template-columns: 1fr; }
+    .reference-modal-box { max-height: 94vh; padding: 14px; }
+    .reference-toolbar { grid-template-columns: 1fr; }
+    .reference-form { grid-template-columns: 1fr; }
+    .reference-form .full,
+    .reference-form-actions { grid-column: 1; }
+    .reference-item { grid-template-columns: 1fr; }
+    .reference-actions { justify-content: flex-end; }
+  }
+
   /* Modal (iPad 터치 백업/복원 텍스트 지원) */
   .modal-overlay {
     position: fixed;
@@ -1326,6 +1607,13 @@ body.theme-soul .storage-usage {
     🔄 새로고침
 </button>
 
+<button class="btn-reference"
+        type="button"
+        title="업무와 별도로 보관하는 참고자료"
+        onclick="openReferenceLibrary()">
+    📚 자료보관함
+</button>
+
 <select id="themeSelect" class="theme-select">
     <option value="dark">🌙 다크 모드</option>
     <option value="light">☀️ 라이트 모드</option>
@@ -1468,6 +1756,113 @@ body.theme-soul .storage-usage {
     </div>
   </div>
 
+  <!-- 컬럼 제목 / 글자 크기 / 색상 설정 -->
+  <div class="modal-overlay" id="columnSettingsModal">
+    <div class="modal-box" style="max-width:520px;">
+      <h3 style="font-size:1.1rem; color:var(--text-main);">✎ 컬럼 제목 설정</h3>
+      <p style="font-size:0.79rem; color:var(--text-sub); line-height:1.5;">
+        컬럼의 기능(todo / doing1 / doing2 / done)은 그대로 유지하고 화면에 보이는 제목만 변경합니다.
+      </p>
+
+      <div class="column-settings-grid">
+        <div class="setting-field">
+          <label for="columnLabelInput">제목</label>
+          <input class="setting-input" id="columnLabelInput" maxlength="30" type="text">
+        </div>
+        <div class="setting-field">
+          <label for="columnFontSizeSelect">글자 크기</label>
+          <select class="setting-select" id="columnFontSizeSelect">
+            <option value="14">14px</option>
+            <option value="16">16px</option>
+            <option value="18">18px</option>
+            <option value="20">20px</option>
+            <option value="22">22px</option>
+            <option value="24">24px</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-field">
+        <label for="columnColorInput">제목 및 컬럼 구분선 색상</label>
+        <div class="setting-color-wrap">
+          <input class="setting-color" id="columnColorInput" type="color">
+          <span id="columnColorValue" style="font-size:.8rem;color:var(--text-sub);"></span>
+        </div>
+      </div>
+
+      <div class="column-preview" id="columnSettingPreview">미리보기</div>
+
+      <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+        <button class="btn-sync" type="button" onclick="resetCurrentColumnSetting()">기본값 복원</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-sync" type="button" onclick="closeColumnSettings()">취소</button>
+          <button class="btn-new-task" type="button" onclick="saveColumnSettings()">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 업무와 별도로 관리하는 참고자료 보관함 -->
+  <div class="modal-overlay" id="referenceModal">
+    <div class="modal-box reference-modal-box">
+      <div class="reference-header">
+        <div>
+          <h3 style="font-size:1.12rem; color:var(--text-main);">📚 자료보관함</h3>
+          <div style="margin-top:4px;font-size:.76rem;color:var(--text-sub);">
+            특정 업무와 무관하게 반복해서 참고할 문서·지침·매뉴얼을 보관합니다.
+          </div>
+        </div>
+        <button class="btn-sync" type="button" onclick="closeReferenceLibrary()">닫기</button>
+      </div>
+
+      <div class="reference-toolbar">
+        <input id="referenceSearchInput" type="search" placeholder="🔎 자료명·파일명·메모 검색" oninput="renderReferenceLibrary()">
+        <select id="referenceCategoryFilter" onchange="renderReferenceLibrary()">
+          <option value="all">전체 분류</option>
+          <option value="소방행정">소방행정</option>
+          <option value="정보통신">정보통신</option>
+          <option value="사업자료">사업자료</option>
+          <option value="법령·지침">법령·지침</option>
+          <option value="교육·매뉴얼">교육·매뉴얼</option>
+          <option value="기타">기타</option>
+        </select>
+        <button class="btn-new-task" type="button" onclick="toggleReferenceAddForm(true)">➕ 자료 추가</button>
+      </div>
+
+      <div class="reference-form" id="referenceAddForm">
+        <div class="setting-field">
+          <label for="referenceTitleInput">자료명</label>
+          <input id="referenceTitleInput" type="text" maxlength="80" placeholder="예: 소방정보통신 업무지침">
+        </div>
+        <div class="setting-field">
+          <label for="referenceCategoryInput">분류</label>
+          <select id="referenceCategoryInput">
+            <option value="소방행정">소방행정</option>
+            <option value="정보통신">정보통신</option>
+            <option value="사업자료">사업자료</option>
+            <option value="법령·지침">법령·지침</option>
+            <option value="교육·매뉴얼">교육·매뉴얼</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="setting-field full">
+          <label for="referenceMemoInput">메모</label>
+          <textarea id="referenceMemoInput" maxlength="500" placeholder="자료의 용도나 참고사항을 간단히 적어두세요."></textarea>
+        </div>
+        <div class="setting-field full">
+          <label for="referenceFileInput">첨부파일</label>
+          <input id="referenceFileInput" type="file">
+        </div>
+        <div class="reference-form-actions">
+          <button class="btn-sync" type="button" onclick="toggleReferenceAddForm(false)">취소</button>
+          <button class="btn-new-task" id="referenceSaveButton" type="button" onclick="addReferenceItem()">업로드 및 저장</button>
+        </div>
+      </div>
+
+      <div class="reference-list" id="referenceList"></div>
+    </div>
+  </div>
+
   <input type="file" id="directFileInput" multiple style="position:absolute;width:1px;height:1px;opacity:0;" onchange="handleDirectFileSelected(this)">
   <input type="file" id="backupFileInput" accept=".json" style="position:absolute;width:1px;height:1px;opacity:0;" onchange="importDataBackup(this)">
 
@@ -1501,6 +1896,23 @@ const sb = window.supabase.createClient(
 
 let cloudReady = false;
 let cloudSaveTimer = null;
+
+/*
+   보드 사용자 설정은 테마 초기화보다 먼저 기본값이 필요합니다.
+   실제 저장값은 아래 로컬 스토리지 엔진에서 불러옵니다.
+*/
+const BOARD_META_STORAGE_KEY = "SMART_BOARD_META_V3";
+const BOARD_META_RECORD_ID = "__SMART_BOARD_META_V3__";
+
+const DEFAULT_COLUMN_SETTINGS = {
+  todo:   { label: "해야할 업무",       fontSize: 16, color: "#38bdf8" },
+  doing1: { label: "진행중인 업무 Ⅰ",  fontSize: 16, color: "#f59e0b" },
+  doing2: { label: "진행중인 업무 Ⅱ",  fontSize: 16, color: "#fb923c" },
+  done:   { label: "진행완료 업무",     fontSize: 16, color: "#10b981" }
+};
+
+var boardMeta = null;
+
 /* ========================================================
    UI 테마 변경 / 저장
 ======================================================== */
@@ -1511,23 +1923,30 @@ const THEME_STORAGE_KEY =
 
 function getThemeStatusMeta() {
 
+    const labels = {
+        todo: getColumnSetting("todo").label,
+        doing1: getColumnSetting("doing1").label,
+        doing2: getColumnSetting("doing2").label,
+        done: getColumnSetting("done").label
+    };
+
     const isSoul =
         document.body.classList.contains("theme-soul");
 
     if (isSoul) {
         return {
-            todo:   { short: "콘 대기",       board: "해야할 업무",       mobile: "콘 · 해야할 업무",    option: "🦁 해야할 업무" },
-            doing1: { short: "참월 진행Ⅰ",   board: "진행중인 업무 Ⅰ",  mobile: "참월 · 진행Ⅰ",       option: "⚔️ 진행 Ⅰ" },
-            doing2: { short: "가면 진행Ⅱ",   board: "진행중인 업무 Ⅱ",  mobile: "가면 · 진행Ⅱ",       option: "🎭 진행 Ⅱ" },
-            done:   { short: "영혼 완료",     board: "진행완료 업무",     mobile: "영혼 · 완료",         option: "💠 완료" }
+            todo:   { board: labels.todo,   mobile: labels.todo,   option: "🦁 " + labels.todo },
+            doing1: { board: labels.doing1, mobile: labels.doing1, option: "⚔️ " + labels.doing1 },
+            doing2: { board: labels.doing2, mobile: labels.doing2, option: "🎭 " + labels.doing2 },
+            done:   { board: labels.done,   mobile: labels.done,   option: "💠 " + labels.done }
         };
     }
 
     return {
-        todo:   { short: "해야할 업무", board: "해야할 업무", mobile: "해야할 업무", option: "🔵 해야할 업무" },
-        doing1: { short: "진행 Ⅰ",      board: "진행중인 업무 Ⅰ", mobile: "진행 Ⅰ", option: "🟠 진행 Ⅰ" },
-        doing2: { short: "진행 Ⅱ",      board: "진행중인 업무 Ⅱ", mobile: "진행 Ⅱ", option: "🟠 진행 Ⅱ" },
-        done:   { short: "완료",        board: "진행완료 업무", mobile: "완료", option: "🟢 완료" }
+        todo:   { board: labels.todo,   mobile: labels.todo,   option: "🔵 " + labels.todo },
+        doing1: { board: labels.doing1, mobile: labels.doing1, option: "🟠 " + labels.doing1 },
+        doing2: { board: labels.doing2, mobile: labels.doing2, option: "🟠 " + labels.doing2 },
+        done:   { board: labels.done,   mobile: labels.done,   option: "🟢 " + labels.done }
     };
 }
 
@@ -1555,18 +1974,43 @@ function refreshThemeStatusUI() {
     };
 
     Object.keys(tabMap).forEach(status => {
+        const setting = getColumnSetting(status);
         const tab = document.getElementById(tabMap[status]);
+
         if (tab) {
             const label = tab.querySelector(".tab-label-text");
-            if (label) label.innerText = meta[status].mobile;
+            if (label) {
+                label.innerText = meta[status].mobile;
+                label.style.color = setting.color;
+                label.style.fontSize = Math.max(12, setting.fontSize - 2) + "px";
+            }
         }
     });
 
     Object.keys(colMap).forEach(status => {
-        const col = document.getElementById(colMap[status]);
-        if (col) {
-            const label = col.querySelector(".col-title-text");
-            if (label) label.innerText = meta[status].board;
+        const setting = getColumnSetting(status);
+        const colTitle = document.getElementById(colMap[status]);
+
+        if (colTitle) {
+            const label = colTitle.querySelector(".col-title-text");
+
+            if (label) {
+                label.innerText = meta[status].board;
+                label.style.color = setting.color;
+                label.style.fontSize = setting.fontSize + "px";
+            }
+
+            colTitle.classList.add("editable-title");
+            colTitle.title = "제목·글자 크기·색상 수정";
+            colTitle.onclick = function(event) {
+                event.stopPropagation();
+                openColumnSettings(status);
+            };
+        }
+
+        const header = document.querySelector("#col-" + status + " .col-header");
+        if (header) {
+            header.style.borderColor = setting.color;
         }
     });
 }
@@ -1834,6 +2278,18 @@ function getTrackedAttachmentBytes() {
                 total += size;
             }
         });
+    });
+
+    const referenceFiles =
+        boardMeta && Array.isArray(boardMeta.referenceFiles)
+            ? boardMeta.referenceFiles
+            : [];
+
+    referenceFiles.forEach(file => {
+        const size = Number(file.size);
+        if (Number.isFinite(size) && size > 0) {
+            total += size;
+        }
     });
 
     return total;
@@ -2257,13 +2713,15 @@ async function loadCloudBoard() {
     */
     if (data) {
 
-        tasksData =
+        applyCloudBoardPayload(
             Array.isArray(data.tasks)
                 ? data.tasks
-                : [];
+                : []
+        );
 
 
         setStoredTasks(tasksData);
+        setStoredBoardMeta(boardMeta);
 
 
         if (data.title) {
@@ -2363,7 +2821,7 @@ async function saveCloudBoard() {
                 {
                     user_id: user.id,
                     title: title,
-                    tasks: tasksData,
+                    tasks: buildCloudTasksPayload(),
                     updated_at:
                         new Date().toISOString()
                 },
@@ -2400,6 +2858,110 @@ async function saveCloudBoard() {
        1. 로컬 스토리지 하이브리드 엔진 (iPad WebKit 100% 호환)
     ======================================================== */
     const STORAGE_KEY = "SMART_BOARD_TASKS_DATA";
+
+    function cloneDefaultColumnSettings() {
+      return JSON.parse(JSON.stringify(DEFAULT_COLUMN_SETTINGS));
+    }
+
+    function normalizeHexColor(value, fallback) {
+      return /^#[0-9a-fA-F]{6}$/.test(String(value || ""))
+        ? String(value)
+        : fallback;
+    }
+
+    function normalizeBoardMeta(raw) {
+      const source = raw && typeof raw === "object" ? raw : {};
+      const sourceSettings = source.columnSettings && typeof source.columnSettings === "object"
+        ? source.columnSettings
+        : {};
+      const normalizedSettings = cloneDefaultColumnSettings();
+
+      Object.keys(normalizedSettings).forEach(status => {
+        const base = normalizedSettings[status];
+        const incoming = sourceSettings[status] || {};
+        const size = Number(incoming.fontSize);
+
+        normalizedSettings[status] = {
+          label: String(incoming.label || base.label).trim().slice(0, 30) || base.label,
+          fontSize: Number.isFinite(size) ? Math.min(24, Math.max(12, Math.round(size))) : base.fontSize,
+          color: normalizeHexColor(incoming.color, base.color)
+        };
+      });
+
+      return {
+        columnSettings: normalizedSettings,
+        referenceFiles: Array.isArray(source.referenceFiles)
+          ? source.referenceFiles.filter(item => item && item.id && item.path)
+          : []
+      };
+    }
+
+    function getStoredBoardMeta() {
+      try {
+        const raw = localStorage.getItem(BOARD_META_STORAGE_KEY);
+        return raw ? normalizeBoardMeta(JSON.parse(raw)) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function setStoredBoardMeta(meta) {
+      try {
+        localStorage.setItem(
+          BOARD_META_STORAGE_KEY,
+          JSON.stringify(normalizeBoardMeta(meta))
+        );
+      } catch (e) {
+        console.warn("보드 설정 로컬 저장 제한:", e);
+      }
+    }
+
+    boardMeta = getStoredBoardMeta() || normalizeBoardMeta({});
+
+    function getColumnSetting(status) {
+      const base = DEFAULT_COLUMN_SETTINGS[status] || DEFAULT_COLUMN_SETTINGS.todo;
+      const current = boardMeta && boardMeta.columnSettings
+        ? boardMeta.columnSettings[status]
+        : null;
+
+      return current || base;
+    }
+
+    function createBoardMetaRecord() {
+      return {
+        id: BOARD_META_RECORD_ID,
+        _type: "board_meta",
+        columnSettings: boardMeta.columnSettings,
+        referenceFiles: boardMeta.referenceFiles
+      };
+    }
+
+    function buildCloudTasksPayload() {
+      return [
+        ...tasksData,
+        createBoardMetaRecord()
+      ];
+    }
+
+    function applyCloudBoardPayload(rawTasks) {
+      const rows = Array.isArray(rawTasks) ? rawTasks : [];
+      const metaRecord = rows.find(item =>
+        item &&
+        (item._type === "board_meta" || item.id === BOARD_META_RECORD_ID)
+      );
+
+      tasksData = rows.filter(item =>
+        item &&
+        item._type !== "board_meta" &&
+        item.id !== BOARD_META_RECORD_ID
+      );
+
+      if (metaRecord) {
+        boardMeta = normalizeBoardMeta(metaRecord);
+      } else {
+        boardMeta = normalizeBoardMeta(boardMeta);
+      }
+    }
 
     function getStoredTasks() {
       try {
@@ -2440,6 +3002,7 @@ async function saveCloudBoard() {
 
         /* 현재 기기에도 즉시 저장 */
         setStoredTasks(tasksData);
+        setStoredBoardMeta(boardMeta);
 
 
         /* 화면 즉시 갱신 */
@@ -2490,7 +3053,8 @@ async function saveCloudBoard() {
       const exportObj = {
         title: appTitle,
         exportDate: new Date().toISOString(),
-        tasks: tasksData
+        tasks: tasksData,
+        boardMeta: boardMeta
       };
 
       const jsonStr = JSON.stringify(exportObj, null, 2);
@@ -2547,7 +3111,9 @@ async function saveCloudBoard() {
         try {
           const parsed = JSON.parse(e.target.result);
           if (parsed && parsed.tasks) {
-            tasksData = parsed.tasks;
+            tasksData = parsed.tasks.filter(item => item && item._type !== "board_meta" && item.id !== BOARD_META_RECORD_ID);
+            boardMeta = normalizeBoardMeta(parsed.boardMeta || parsed.tasks.find(item => item && item._type === "board_meta") || boardMeta);
+            setStoredBoardMeta(boardMeta);
             if (parsed.title) saveAppTitle(parsed.title);
             saveAll();
             alert('✅ 데이터 복원이 완료되었습니다.');
@@ -2579,7 +3145,9 @@ async function saveCloudBoard() {
         const raw = document.getElementById('modalTextarea').value;
         const parsed = JSON.parse(raw);
         if (parsed.tasks) {
-          tasksData = parsed.tasks;
+          tasksData = parsed.tasks.filter(item => item && item._type !== "board_meta" && item.id !== BOARD_META_RECORD_ID);
+          boardMeta = normalizeBoardMeta(parsed.boardMeta || parsed.tasks.find(item => item && item._type === "board_meta") || boardMeta);
+          setStoredBoardMeta(boardMeta);
           saveAll();
           alert('복원 완료!');
           closeBackupModal();
@@ -2663,6 +3231,350 @@ async function saveCloudBoard() {
     }
 
     /* ========================================================
+       3-1. 컬럼 제목 / 글자 크기 / 색상 설정
+    ======================================================== */
+    let currentEditingColumnStatus = null;
+
+    function updateColumnSettingPreview() {
+      const input = document.getElementById("columnLabelInput");
+      const sizeSelect = document.getElementById("columnFontSizeSelect");
+      const colorInput = document.getElementById("columnColorInput");
+      const colorValue = document.getElementById("columnColorValue");
+      const preview = document.getElementById("columnSettingPreview");
+
+      if (!input || !sizeSelect || !colorInput || !preview) return;
+
+      preview.innerText = input.value.trim() || "컬럼 제목";
+      preview.style.fontSize = Number(sizeSelect.value || 16) + "px";
+      preview.style.color = colorInput.value;
+      preview.style.borderColor = colorInput.value;
+
+      if (colorValue) {
+        colorValue.innerText = colorInput.value.toUpperCase();
+      }
+    }
+
+    function openColumnSettings(status) {
+      if (!DEFAULT_COLUMN_SETTINGS[status]) return;
+
+      currentEditingColumnStatus = status;
+      const setting = getColumnSetting(status);
+
+      document.getElementById("columnLabelInput").value = setting.label;
+      document.getElementById("columnFontSizeSelect").value = String(setting.fontSize);
+      document.getElementById("columnColorInput").value = setting.color;
+
+      updateColumnSettingPreview();
+      document.getElementById("columnSettingsModal").style.display = "flex";
+
+      setTimeout(() => {
+        const input = document.getElementById("columnLabelInput");
+        if (input) input.focus();
+      }, 50);
+    }
+
+    function closeColumnSettings() {
+      document.getElementById("columnSettingsModal").style.display = "none";
+      currentEditingColumnStatus = null;
+    }
+
+    async function saveColumnSettings() {
+      const status = currentEditingColumnStatus;
+      if (!status || !DEFAULT_COLUMN_SETTINGS[status]) return;
+
+      const base = DEFAULT_COLUMN_SETTINGS[status];
+      const label = document.getElementById("columnLabelInput").value.trim().slice(0, 30) || base.label;
+      const fontSize = Number(document.getElementById("columnFontSizeSelect").value || base.fontSize);
+      const color = normalizeHexColor(
+        document.getElementById("columnColorInput").value,
+        base.color
+      );
+
+      boardMeta.columnSettings[status] = {
+        label: label,
+        fontSize: Math.min(24, Math.max(12, Math.round(fontSize))),
+        color: color
+      };
+
+      setStoredBoardMeta(boardMeta);
+      renderBoard();
+      closeColumnSettings();
+
+      if (cloudReady) {
+        if (cloudSaveTimer) {
+          clearTimeout(cloudSaveTimer);
+          cloudSaveTimer = null;
+        }
+        await saveCloudBoard();
+      }
+    }
+
+    async function resetCurrentColumnSetting() {
+      const status = currentEditingColumnStatus;
+      if (!status || !DEFAULT_COLUMN_SETTINGS[status]) return;
+
+      boardMeta.columnSettings[status] = {
+        ...DEFAULT_COLUMN_SETTINGS[status]
+      };
+
+      setStoredBoardMeta(boardMeta);
+      renderBoard();
+      closeColumnSettings();
+
+      if (cloudReady) {
+        if (cloudSaveTimer) {
+          clearTimeout(cloudSaveTimer);
+          cloudSaveTimer = null;
+        }
+        await saveCloudBoard();
+      }
+    }
+
+    document.getElementById("columnLabelInput").addEventListener("input", updateColumnSettingPreview);
+    document.getElementById("columnFontSizeSelect").addEventListener("change", updateColumnSettingPreview);
+    document.getElementById("columnColorInput").addEventListener("input", updateColumnSettingPreview);
+
+    /* ========================================================
+       3-2. 자료보관함
+       - 기존 attachments 버킷 사용
+       - 경로: 사용자ID/__reference__/고유파일ID.확장자
+       - 메타데이터는 boardMeta.referenceFiles에 저장
+    ======================================================== */
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function openReferenceLibrary() {
+      document.getElementById("referenceModal").style.display = "flex";
+      renderReferenceLibrary();
+    }
+
+    function closeReferenceLibrary() {
+      document.getElementById("referenceModal").style.display = "none";
+      toggleReferenceAddForm(false);
+    }
+
+    function toggleReferenceAddForm(show) {
+      const form = document.getElementById("referenceAddForm");
+      if (!form) return;
+
+      form.classList.toggle("show", Boolean(show));
+
+      if (!show) {
+        document.getElementById("referenceTitleInput").value = "";
+        document.getElementById("referenceMemoInput").value = "";
+        document.getElementById("referenceFileInput").value = "";
+        document.getElementById("referenceCategoryInput").value = "정보통신";
+      }
+    }
+
+    function renderReferenceLibrary() {
+      const list = document.getElementById("referenceList");
+      if (!list) return;
+
+      const query = (document.getElementById("referenceSearchInput")?.value || "")
+        .trim()
+        .toLowerCase();
+      const category = document.getElementById("referenceCategoryFilter")?.value || "all";
+
+      const items = (boardMeta.referenceFiles || [])
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => {
+          if (category !== "all" && item.category !== category) return false;
+          if (!query) return true;
+
+          const haystack = [
+            item.title,
+            item.category,
+            item.memo,
+            item.name
+          ].join(" ").toLowerCase();
+
+          return haystack.includes(query);
+        })
+        .sort((a, b) => String(b.item.createdAt || "").localeCompare(String(a.item.createdAt || "")));
+
+      if (items.length === 0) {
+        list.innerHTML = `
+          <div class="reference-empty">
+            📚 조건에 맞는 자료가 없습니다.<br>
+            <span style="font-size:.74rem;">상단의 ‘자료 추가’ 버튼으로 참고자료를 등록하세요.</span>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = items.map(({ item, index }) => {
+        const createdDate = item.createdAt ? String(item.createdAt).slice(0, 10) : "";
+        return `
+          <div class="reference-item">
+            <div>
+              <div class="reference-title">${escapeHtml(item.title || item.name || "참고자료")}</div>
+              <div class="reference-meta">
+                <span>🏷 ${escapeHtml(item.category || "기타")}</span>
+                <span>📄 ${escapeHtml(item.name || "")}</span>
+                <span>💾 ${formatStorageBytes(item.size || 0)}</span>
+                <span>🗓 ${escapeHtml(createdDate)}</span>
+              </div>
+              ${item.memo ? `<div class="reference-memo">${escapeHtml(item.memo)}</div>` : ""}
+            </div>
+            <div class="reference-actions">
+              <button class="btn-sync" type="button" onclick="openReferenceFile(${index})">열기</button>
+              <button class="btn-del-card" type="button" onclick="deleteReferenceItem(${index})">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function addReferenceItem() {
+      const titleInput = document.getElementById("referenceTitleInput");
+      const categoryInput = document.getElementById("referenceCategoryInput");
+      const memoInput = document.getElementById("referenceMemoInput");
+      const fileInput = document.getElementById("referenceFileInput");
+      const saveButton = document.getElementById("referenceSaveButton");
+
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) {
+        alert("보관할 파일을 선택하세요.");
+        return;
+      }
+
+      const title = titleInput.value.trim() || file.name;
+      const category = categoryInput.value || "기타";
+      const memo = memoInput.value.trim();
+
+      saveButton.disabled = true;
+      saveButton.innerText = "업로드 중...";
+
+      try {
+        const {
+          data: { user },
+          error: userError
+        } = await sb.auth.getUser();
+
+        if (userError || !user) {
+          throw userError || new Error("로그인 정보가 없습니다.");
+        }
+
+        const referenceId = "ref_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+        const fileId = createStorageFileId();
+        const extension = getStorageFileExtension(file.name);
+        const storagePath = user.id + "/__reference__/" + fileId + extension;
+
+        setCloudSyncStatus("syncing", "☁ 참고자료 업로드 중...");
+
+        const { error: uploadError } = await sb.storage
+          .from("attachments")
+          .upload(storagePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type || "application/octet-stream"
+          });
+
+        if (uploadError) throw uploadError;
+
+        boardMeta.referenceFiles.push({
+          id: referenceId,
+          title: title.slice(0, 80),
+          category: category,
+          memo: memo.slice(0, 500),
+          createdAt: new Date().toISOString(),
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          path: storagePath
+        });
+
+        setStoredBoardMeta(boardMeta);
+
+        if (cloudReady) {
+          if (cloudSaveTimer) {
+            clearTimeout(cloudSaveTimer);
+            cloudSaveTimer = null;
+          }
+          await saveCloudBoard();
+        }
+
+        await refreshStorageUsage();
+        toggleReferenceAddForm(false);
+        renderReferenceLibrary();
+
+      } catch (error) {
+        console.error("참고자료 업로드 오류:", error);
+        alert("참고자료 업로드에 실패했습니다.");
+        setCloudSyncStatus("error", "☁ 참고자료 업로드 실패");
+      } finally {
+        saveButton.disabled = false;
+        saveButton.innerText = "업로드 및 저장";
+      }
+    }
+
+    async function openReferenceFile(index) {
+      const item = boardMeta.referenceFiles[index];
+      if (!item || !item.path) return;
+
+      setCloudSyncStatus("syncing", "☁ 참고자료 여는 중...");
+
+      const { data, error } = await sb.storage
+        .from("attachments")
+        .createSignedUrl(item.path, 300);
+
+      if (error || !data || !data.signedUrl) {
+        console.error("참고자료 열기 오류:", error);
+        alert("참고자료를 열 수 없습니다.");
+        setCloudSyncStatus("error", "☁ 참고자료 열기 실패");
+        return;
+      }
+
+      window.location.href = data.signedUrl;
+      setCloudSyncStatus("synced", "☁ 동기화 완료");
+    }
+
+    async function deleteReferenceItem(index) {
+      const item = boardMeta.referenceFiles[index];
+      if (!item) return;
+
+      if (!confirm("이 참고자료를 삭제하시겠습니까?\n" + (item.title || item.name || "참고자료"))) {
+        return;
+      }
+
+      setCloudSyncStatus("syncing", "☁ 참고자료 삭제 중...");
+
+      if (item.path) {
+        const { error } = await sb.storage
+          .from("attachments")
+          .remove([item.path]);
+
+        if (error) {
+          console.error("참고자료 Storage 삭제 오류:", error);
+          alert("참고자료 파일 삭제에 실패했습니다.");
+          setCloudSyncStatus("error", "☁ 참고자료 삭제 실패");
+          return;
+        }
+      }
+
+      boardMeta.referenceFiles.splice(index, 1);
+      setStoredBoardMeta(boardMeta);
+
+      if (cloudReady) {
+        if (cloudSaveTimer) {
+          clearTimeout(cloudSaveTimer);
+          cloudSaveTimer = null;
+        }
+        await saveCloudBoard();
+      }
+
+      await refreshStorageUsage();
+      renderReferenceLibrary();
+    }
+
+    /* ========================================================
        4. D-Day 계산
     ======================================================== */
     function getDDay(dateStr) {
@@ -2728,7 +3640,29 @@ async function saveCloudBoard() {
         card.ondragleave = () => card.classList.remove('dragover-card');
         card.ondrop = (e) => handleCardDrop(e, task.id);
 
+        const files = task.files || [];
+
         if (isDone) {
+          const doneFilesHtml = `
+            <details class="done-attachments">
+              <summary>📎 붙임파일 ${files.length}개</summary>
+              <div class="attachments-section">
+                <div class="att-top">
+                  <span class="att-header">완료 업무 첨부자료</span>
+                  <button class="btn-add-file" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
+                </div>
+                <div class="att-list">
+                  ${files.length > 0 ? files.map((file, idx) => `
+                    <div class="att-pill">
+                      <span class="att-name" onclick="downloadFile('${task.id}', ${idx})">${file.name}</span>
+                      <button class="att-del" onclick="deleteAttachment('${task.id}', ${idx})">✕</button>
+                    </div>
+                  `).join('') : `<span style="font-size:.73rem;color:var(--text-sub);">등록된 붙임파일이 없습니다.</span>`}
+                </div>
+              </div>
+            </details>
+          `;
+
           card.innerHTML = `
             <div class="card-top">
               <span class="d-day-badge done-badge">✓ 완료됨</span>
@@ -2737,6 +3671,7 @@ async function saveCloudBoard() {
             <div class="card-title" contenteditable="true" 
                  onblur="updateTaskTitle('${task.id}', this.innerText)" 
                  onkeydown="handleTitleKeydown(event, this)">${task.title}</div>
+            ${doneFilesHtml}
             <div class="card-footer">
               <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">
                 <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>${getStatusOptionLabel('todo')}</option>
@@ -2754,7 +3689,6 @@ async function saveCloudBoard() {
           `;
         } else {
           const subtasks = task.subtasks || [];
-          const files = task.files || [];
 
           let subtasksHtml = `
             <div class="subtasks-container">
@@ -3543,6 +4477,21 @@ async function deleteAttachment(
         draggedId = null;
       }
     }
+
+    document.addEventListener("keydown", function(event) {
+      if (event.key !== "Escape") return;
+
+      const columnModal = document.getElementById("columnSettingsModal");
+      const referenceModal = document.getElementById("referenceModal");
+
+      if (columnModal && columnModal.style.display === "flex") {
+        closeColumnSettings();
+      }
+
+      if (referenceModal && referenceModal.style.display === "flex") {
+        closeReferenceLibrary();
+      }
+    });
 
     // 초기 실행
     loadAppTitle();
