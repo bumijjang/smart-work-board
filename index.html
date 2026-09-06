@@ -1299,7 +1299,7 @@ body.theme-soul .storage-usage {
 
   .reference-toolbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 170px auto;
+    grid-template-columns: minmax(0, 1fr) 170px auto auto;
     gap: 8px;
   }
 
@@ -1401,6 +1401,67 @@ body.theme-soul .storage-usage {
     border-radius: 9px;
   }
 
+  /* 자료보관함 분류 관리 */
+  .category-manager-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 46vh;
+    overflow: auto;
+    padding-right: 3px;
+  }
+
+  .category-manager-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    border-radius: 8px;
+  }
+
+  .category-manager-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .category-manager-input,
+  .category-add-input,
+  .category-transfer-select {
+    width: 100%;
+    background: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 9px 10px;
+    outline: none;
+    font-size: 0.84rem;
+  }
+
+  .category-manager-count {
+    color: var(--text-sub);
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .category-manager-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .category-add-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--divider-color);
+  }
+
   @media (max-width: 700px) {
     .column-settings-grid { grid-template-columns: 1fr; }
     .reference-modal-box { max-height: 94vh; padding: 14px; }
@@ -1410,6 +1471,10 @@ body.theme-soul .storage-usage {
     .reference-form-actions { grid-column: 1; }
     .reference-item { grid-template-columns: 1fr; }
     .reference-actions { justify-content: flex-end; }
+    .category-manager-row { grid-template-columns: 1fr; }
+    .category-manager-main { grid-template-columns: 1fr; }
+    .category-manager-actions { justify-content: flex-end; }
+    .category-add-row { grid-template-columns: 1fr; }
   }
 
   /* Modal (iPad 터치 백업/복원 텍스트 지원) */
@@ -1819,13 +1884,8 @@ body.theme-soul .storage-usage {
         <input id="referenceSearchInput" type="search" placeholder="🔎 자료명·파일명·메모 검색" oninput="renderReferenceLibrary()">
         <select id="referenceCategoryFilter" onchange="renderReferenceLibrary()">
           <option value="all">전체 분류</option>
-          <option value="소방행정">소방행정</option>
-          <option value="정보통신">정보통신</option>
-          <option value="사업자료">사업자료</option>
-          <option value="법령·지침">법령·지침</option>
-          <option value="교육·매뉴얼">교육·매뉴얼</option>
-          <option value="기타">기타</option>
         </select>
+        <button class="btn-sync" type="button" onclick="openReferenceCategoryManager()">⚙ 분류 관리</button>
         <button class="btn-new-task" type="button" onclick="toggleReferenceAddForm(true)">➕ 자료 추가</button>
       </div>
 
@@ -1836,14 +1896,7 @@ body.theme-soul .storage-usage {
         </div>
         <div class="setting-field">
           <label for="referenceCategoryInput">분류</label>
-          <select id="referenceCategoryInput">
-            <option value="소방행정">소방행정</option>
-            <option value="정보통신">정보통신</option>
-            <option value="사업자료">사업자료</option>
-            <option value="법령·지침">법령·지침</option>
-            <option value="교육·매뉴얼">교육·매뉴얼</option>
-            <option value="기타">기타</option>
-          </select>
+          <select id="referenceCategoryInput"></select>
         </div>
         <div class="setting-field full">
           <label for="referenceMemoInput">메모</label>
@@ -1860,6 +1913,44 @@ body.theme-soul .storage-usage {
       </div>
 
       <div class="reference-list" id="referenceList"></div>
+    </div>
+  </div>
+
+  <!-- 자료보관함 분류명 수정 / 추가 / 삭제 -->
+  <div class="modal-overlay" id="referenceCategoryModal">
+    <div class="modal-box" style="max-width:680px;">
+      <div class="reference-header">
+        <div>
+          <h3 style="font-size:1.08rem; color:var(--text-main);">⚙ 자료 분류 관리</h3>
+          <div style="margin-top:4px;font-size:.76rem;color:var(--text-sub);line-height:1.5;">
+            분류명을 바꾸면 기존 자료의 분류도 함께 변경됩니다.
+          </div>
+        </div>
+        <button class="btn-sync" type="button" onclick="closeReferenceCategoryManager()">닫기</button>
+      </div>
+
+      <div class="category-manager-list" id="referenceCategoryManagerList"></div>
+
+      <div class="category-add-row">
+        <input class="category-add-input" id="newReferenceCategoryInput" type="text" maxlength="24" placeholder="새 분류명 입력">
+        <button class="btn-new-task" type="button" onclick="addReferenceCategory()">＋ 새 분류 추가</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사용 중인 분류 삭제 시 기존 자료 이동 -->
+  <div class="modal-overlay" id="referenceCategoryDeleteModal">
+    <div class="modal-box" style="max-width:500px;">
+      <h3 style="font-size:1.05rem; color:var(--text-main);">분류 삭제 및 자료 이동</h3>
+      <div id="referenceCategoryDeleteMessage" style="font-size:.82rem;color:var(--text-sub);line-height:1.55;"></div>
+      <div class="setting-field">
+        <label for="referenceCategoryTransferSelect">기존 자료를 이동할 분류</label>
+        <select class="category-transfer-select" id="referenceCategoryTransferSelect"></select>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn-sync" type="button" onclick="closeReferenceCategoryDeleteModal()">취소</button>
+        <button class="btn-del-card" type="button" onclick="confirmReferenceCategoryDelete()">이동 후 삭제</button>
+      </div>
     </div>
   </div>
 
@@ -1910,6 +2001,15 @@ const DEFAULT_COLUMN_SETTINGS = {
   doing2: { label: "진행중인 업무 Ⅱ",  fontSize: 16, color: "#fb923c" },
   done:   { label: "진행완료 업무",     fontSize: 16, color: "#10b981" }
 };
+
+const DEFAULT_REFERENCE_CATEGORIES = [
+  "소방행정",
+  "정보통신",
+  "사업자료",
+  "법령·지침",
+  "교육·매뉴얼",
+  "기타"
+];
 
 var boardMeta = null;
 
@@ -2888,11 +2988,38 @@ async function saveCloudBoard() {
         };
       });
 
+      const referenceFiles = Array.isArray(source.referenceFiles)
+        ? source.referenceFiles.filter(item => item && item.id && item.path)
+        : [];
+
+      const rawCategories = Array.isArray(source.referenceCategories)
+        ? source.referenceCategories
+        : DEFAULT_REFERENCE_CATEGORIES;
+
+      const normalizedCategories = [];
+      rawCategories.forEach(value => {
+        const name = String(value || "").trim().slice(0, 24);
+        if (name && !normalizedCategories.includes(name)) {
+          normalizedCategories.push(name);
+        }
+      });
+
+      /* 이전 버전 자료의 분류가 목록에 없더라도 자동 보존 */
+      referenceFiles.forEach(item => {
+        const category = String(item.category || "").trim().slice(0, 24);
+        if (category && !normalizedCategories.includes(category)) {
+          normalizedCategories.push(category);
+        }
+      });
+
+      if (normalizedCategories.length === 0) {
+        normalizedCategories.push(...DEFAULT_REFERENCE_CATEGORIES);
+      }
+
       return {
         columnSettings: normalizedSettings,
-        referenceFiles: Array.isArray(source.referenceFiles)
-          ? source.referenceFiles.filter(item => item && item.id && item.path)
-          : []
+        referenceCategories: normalizedCategories.slice(0, 30),
+        referenceFiles: referenceFiles
       };
     }
 
@@ -2932,6 +3059,7 @@ async function saveCloudBoard() {
         id: BOARD_META_RECORD_ID,
         _type: "board_meta",
         columnSettings: boardMeta.columnSettings,
+        referenceCategories: boardMeta.referenceCategories,
         referenceFiles: boardMeta.referenceFiles
       };
     }
@@ -3349,7 +3477,84 @@ async function saveCloudBoard() {
         .replace(/'/g, "&#039;");
     }
 
+    function getReferenceCategories() {
+      const categories = boardMeta && Array.isArray(boardMeta.referenceCategories)
+        ? boardMeta.referenceCategories
+        : [];
+
+      return categories.length > 0
+        ? categories
+        : [...DEFAULT_REFERENCE_CATEGORIES];
+    }
+
+    function getDefaultReferenceCategory() {
+      const categories = getReferenceCategories();
+      if (categories.includes("정보통신")) return "정보통신";
+      if (categories.includes("기타")) return "기타";
+      return categories[0] || "기타";
+    }
+
+    function renderReferenceCategoryControls(preferredFilter, preferredInput) {
+      const categories = getReferenceCategories();
+      const filter = document.getElementById("referenceCategoryFilter");
+      const input = document.getElementById("referenceCategoryInput");
+
+      if (filter) {
+        const previous = preferredFilter !== undefined
+          ? preferredFilter
+          : filter.value;
+
+        filter.innerHTML = "";
+        const allOption = document.createElement("option");
+        allOption.value = "all";
+        allOption.textContent = "전체 분류";
+        filter.appendChild(allOption);
+
+        categories.forEach(category => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          filter.appendChild(option);
+        });
+
+        filter.value = previous === "all" || categories.includes(previous)
+          ? previous
+          : "all";
+      }
+
+      if (input) {
+        const previous = preferredInput !== undefined
+          ? preferredInput
+          : input.value;
+
+        input.innerHTML = "";
+        categories.forEach(category => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          input.appendChild(option);
+        });
+
+        input.value = categories.includes(previous)
+          ? previous
+          : getDefaultReferenceCategory();
+      }
+    }
+
+    async function persistBoardMetaImmediately() {
+      setStoredBoardMeta(boardMeta);
+
+      if (cloudReady) {
+        if (cloudSaveTimer) {
+          clearTimeout(cloudSaveTimer);
+          cloudSaveTimer = null;
+        }
+        await saveCloudBoard();
+      }
+    }
+
     function openReferenceLibrary() {
+      renderReferenceCategoryControls();
       document.getElementById("referenceModal").style.display = "flex";
       renderReferenceLibrary();
     }
@@ -3363,13 +3568,23 @@ async function saveCloudBoard() {
       const form = document.getElementById("referenceAddForm");
       if (!form) return;
 
+      if (show) {
+        renderReferenceCategoryControls(
+          document.getElementById("referenceCategoryFilter")?.value || "all",
+          document.getElementById("referenceCategoryInput")?.value || getDefaultReferenceCategory()
+        );
+      }
+
       form.classList.toggle("show", Boolean(show));
 
       if (!show) {
         document.getElementById("referenceTitleInput").value = "";
         document.getElementById("referenceMemoInput").value = "";
         document.getElementById("referenceFileInput").value = "";
-        document.getElementById("referenceCategoryInput").value = "정보통신";
+        renderReferenceCategoryControls(
+          document.getElementById("referenceCategoryFilter")?.value || "all",
+          getDefaultReferenceCategory()
+        );
       }
     }
 
@@ -3432,6 +3647,209 @@ async function saveCloudBoard() {
       }).join("");
     }
 
+    let pendingDeleteReferenceCategoryIndex = null;
+
+    function openReferenceCategoryManager() {
+      renderReferenceCategoryManager();
+      document.getElementById("referenceCategoryModal").style.display = "flex";
+    }
+
+    function closeReferenceCategoryManager() {
+      document.getElementById("referenceCategoryModal").style.display = "none";
+      const input = document.getElementById("newReferenceCategoryInput");
+      if (input) input.value = "";
+    }
+
+    function renderReferenceCategoryManager() {
+      const list = document.getElementById("referenceCategoryManagerList");
+      if (!list) return;
+
+      const categories = getReferenceCategories();
+      const files = boardMeta.referenceFiles || [];
+
+      list.innerHTML = categories.map((category, index) => {
+        const count = files.filter(item => item.category === category).length;
+        return `
+          <div class="category-manager-row">
+            <div class="category-manager-main">
+              <input class="category-manager-input"
+                     id="referenceCategoryName_${index}"
+                     type="text"
+                     maxlength="24"
+                     value="${escapeHtml(category)}"
+                     onkeydown="if(event.key === 'Enter'){ event.preventDefault(); renameReferenceCategory(${index}); }">
+              <span class="category-manager-count">자료 ${count}개</span>
+            </div>
+            <div class="category-manager-actions">
+              <button class="btn-sync" type="button" onclick="renameReferenceCategory(${index})">저장</button>
+              <button class="btn-del-card" type="button" onclick="requestDeleteReferenceCategory(${index})">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function renameReferenceCategory(index) {
+      const categories = getReferenceCategories();
+      if (!categories[index]) return;
+
+      const input = document.getElementById("referenceCategoryName_" + index);
+      const oldName = categories[index];
+      const newName = String(input?.value || "").trim().slice(0, 24);
+
+      if (!newName) {
+        alert("분류명을 입력하세요.");
+        if (input) input.value = oldName;
+        return;
+      }
+
+      if (newName === oldName) return;
+
+      if (categories.some((name, i) => i !== index && name === newName)) {
+        alert("같은 이름의 분류가 이미 있습니다.");
+        if (input) input.value = oldName;
+        return;
+      }
+
+      const currentFilter = document.getElementById("referenceCategoryFilter")?.value || "all";
+      const currentInput = document.getElementById("referenceCategoryInput")?.value || "";
+
+      boardMeta.referenceCategories[index] = newName;
+      (boardMeta.referenceFiles || []).forEach(item => {
+        if (item.category === oldName) {
+          item.category = newName;
+        }
+      });
+
+      await persistBoardMetaImmediately();
+
+      renderReferenceCategoryControls(
+        currentFilter === oldName ? newName : currentFilter,
+        currentInput === oldName ? newName : currentInput
+      );
+      renderReferenceLibrary();
+      renderReferenceCategoryManager();
+    }
+
+    async function addReferenceCategory() {
+      const input = document.getElementById("newReferenceCategoryInput");
+      const name = String(input?.value || "").trim().slice(0, 24);
+
+      if (!name) {
+        alert("추가할 분류명을 입력하세요.");
+        return;
+      }
+
+      const categories = getReferenceCategories();
+      if (categories.includes(name)) {
+        alert("같은 이름의 분류가 이미 있습니다.");
+        return;
+      }
+
+      if (categories.length >= 30) {
+        alert("분류는 최대 30개까지 만들 수 있습니다.");
+        return;
+      }
+
+      boardMeta.referenceCategories.push(name);
+      if (input) input.value = "";
+
+      await persistBoardMetaImmediately();
+      renderReferenceCategoryControls(
+        document.getElementById("referenceCategoryFilter")?.value || "all",
+        name
+      );
+      renderReferenceCategoryManager();
+    }
+
+    async function requestDeleteReferenceCategory(index) {
+      const categories = getReferenceCategories();
+      const source = categories[index];
+      if (!source) return;
+
+      if (categories.length <= 1) {
+        alert("자료보관함에는 최소 1개의 분류가 필요합니다.");
+        return;
+      }
+
+      const count = (boardMeta.referenceFiles || []).filter(item => item.category === source).length;
+
+      if (count === 0) {
+        if (!confirm("‘" + source + "’ 분류를 삭제하시겠습니까?")) return;
+
+        const currentFilter = document.getElementById("referenceCategoryFilter")?.value || "all";
+        const currentInput = document.getElementById("referenceCategoryInput")?.value || "";
+        boardMeta.referenceCategories.splice(index, 1);
+
+        await persistBoardMetaImmediately();
+        renderReferenceCategoryControls(
+          currentFilter === source ? "all" : currentFilter,
+          currentInput === source ? getDefaultReferenceCategory() : currentInput
+        );
+        renderReferenceLibrary();
+        renderReferenceCategoryManager();
+        return;
+      }
+
+      pendingDeleteReferenceCategoryIndex = index;
+      const message = document.getElementById("referenceCategoryDeleteMessage");
+      const select = document.getElementById("referenceCategoryTransferSelect");
+
+      if (message) {
+        message.innerHTML = `‘<strong>${escapeHtml(source)}</strong>’ 분류에 자료 ${count}개가 있습니다.<br>삭제 전에 기존 자료를 다른 분류로 이동합니다.`;
+      }
+
+      if (select) {
+        select.innerHTML = "";
+        categories.forEach((category, i) => {
+          if (i === index) return;
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          select.appendChild(option);
+        });
+      }
+
+      document.getElementById("referenceCategoryDeleteModal").style.display = "flex";
+    }
+
+    function closeReferenceCategoryDeleteModal() {
+      document.getElementById("referenceCategoryDeleteModal").style.display = "none";
+      pendingDeleteReferenceCategoryIndex = null;
+    }
+
+    async function confirmReferenceCategoryDelete() {
+      const index = pendingDeleteReferenceCategoryIndex;
+      const categories = getReferenceCategories();
+      const source = Number.isInteger(index) ? categories[index] : null;
+      const target = document.getElementById("referenceCategoryTransferSelect")?.value || "";
+
+      if (!source || !target || source === target) {
+        alert("자료를 이동할 다른 분류를 선택하세요.");
+        return;
+      }
+
+      const currentFilter = document.getElementById("referenceCategoryFilter")?.value || "all";
+      const currentInput = document.getElementById("referenceCategoryInput")?.value || "";
+
+      (boardMeta.referenceFiles || []).forEach(item => {
+        if (item.category === source) {
+          item.category = target;
+        }
+      });
+      boardMeta.referenceCategories.splice(index, 1);
+
+      await persistBoardMetaImmediately();
+
+      closeReferenceCategoryDeleteModal();
+      renderReferenceCategoryControls(
+        currentFilter === source ? target : currentFilter,
+        currentInput === source ? target : currentInput
+      );
+      renderReferenceLibrary();
+      renderReferenceCategoryManager();
+    }
+
     async function addReferenceItem() {
       const titleInput = document.getElementById("referenceTitleInput");
       const categoryInput = document.getElementById("referenceCategoryInput");
@@ -3446,7 +3864,7 @@ async function saveCloudBoard() {
       }
 
       const title = titleInput.value.trim() || file.name;
-      const category = categoryInput.value || "기타";
+      const category = categoryInput.value || getDefaultReferenceCategory();
       const memo = memoInput.value.trim();
 
       saveButton.disabled = true;
