@@ -1041,8 +1041,53 @@ body.theme-soul .storage-usage {
     gap: 5px;
     border: 1px solid var(--pill-border);
   }
-  .att-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: var(--link-color); }
-  .att-del { background: transparent; border: none; color: var(--text-sub); cursor: pointer; font-size: 0.8rem; padding: 0 3px; }
+  .att-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-main);
+    font-weight: 700;
+  }
+
+  /* 첨부파일: 보기 / 저장 / 삭제를 명확히 분리 */
+  .att-file-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 2px;
+  }
+
+  .att-action {
+    background: var(--input-bg);
+    border: 1px solid var(--pill-border);
+    color: var(--link-color);
+    padding: 4px 7px;
+    border-radius: 5px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  .att-action:active {
+    background: var(--surface-3);
+    color: var(--text-main);
+    transform: scale(0.98);
+  }
+
+  .att-del {
+    background: transparent;
+    border: none;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 4px 5px;
+    touch-action: manipulation;
+  }
 
   /* Card Footer */
   .card-footer {
@@ -3639,7 +3684,8 @@ async function saveCloudBoard() {
               ${item.memo ? `<div class="reference-memo">${escapeHtml(item.memo)}</div>` : ""}
             </div>
             <div class="reference-actions">
-              <button class="btn-sync" type="button" onclick="openReferenceFile(${index})">열기</button>
+              <button class="btn-sync" type="button" onclick="openReferenceFile(${index})">👁 보기</button>
+              <button class="btn-sync" type="button" onclick="saveReferenceFile(${index})">⬇ 저장</button>
               <button class="btn-del-card" type="button" onclick="deleteReferenceItem(${index})">삭제</button>
             </div>
           </div>
@@ -3933,25 +3979,176 @@ async function saveCloudBoard() {
       }
     }
 
+    /* ========================================================
+       공통 파일 보기 / 저장 유틸리티
+       - 보기: 현재 업무보드는 유지하고 새 탭에서 파일을 엶
+       - 저장: iPad/iPhone은 공유 시트("파일에 저장" 사용 가능), PC는 직접 다운로드
+    ======================================================== */
+    function isIOSLikeDevice() {
+      return /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    }
+
+    function openFileLoadingTab(displayName) {
+      /*
+         iPad Safari는 비동기 작업(await) 이후 window.open()을 호출하면
+         팝업으로 판단할 수 있으므로, 사용자가 '보기'를 누른 즉시 빈 탭을 먼저 엽니다.
+      */
+      const previewWindow = window.open("", "_blank");
+
+      if (!previewWindow) {
+        return null;
+      }
+
+      try {
+        previewWindow.document.title = displayName || "파일 열기";
+        previewWindow.document.body.style.fontFamily =
+          '-apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", sans-serif';
+        previewWindow.document.body.style.padding = "24px";
+        previewWindow.document.body.innerText = "파일을 여는 중입니다...";
+      } catch (e) {
+        /* 새 탭 안내문 작성 실패는 파일 열기에 영향을 주지 않음 */
+      }
+
+      return previewWindow;
+    }
+
+    async function openStorageFileInNewTab(path, displayName, statusLabel) {
+      if (!path) return;
+
+      const label = statusLabel || "파일";
+      const previewWindow = openFileLoadingTab(displayName || label);
+
+      if (!previewWindow) {
+        alert(
+          "새 탭 열기가 차단되었습니다.\n" +
+          "Safari/브라우저의 팝업 차단 설정을 확인한 뒤 다시 '보기'를 눌러 주세요."
+        );
+        return;
+      }
+
+      setCloudSyncStatus("syncing", "☁ " + label + " 여는 중...");
+
+      try {
+        const { data, error } = await sb.storage
+          .from("attachments")
+          .createSignedUrl(path, 300);
+
+        if (error || !data || !data.signedUrl) {
+          throw error || new Error("Signed URL 생성 실패");
+        }
+
+        /* 업무보드는 원래 탭에 그대로 두고, 새 탭에 파일만 표시 */
+        previewWindow.location.replace(data.signedUrl);
+
+        setCloudSyncStatus("synced", "☁ 동기화 완료");
+      } catch (error) {
+        console.error(label + " 열기 오류:", error);
+
+        try {
+          if (previewWindow && !previewWindow.closed) previewWindow.close();
+        } catch (e) {}
+
+        alert(label + "을(를) 열 수 없습니다.");
+        setCloudSyncStatus("error", "☁ " + label + " 열기 실패");
+      }
+    }
+
+    async function saveStorageFileToDevice(path, fileName, fileType, statusLabel) {
+      if (!path) return;
+
+      const label = statusLabel || "파일";
+      const safeName = String(fileName || "다운로드_파일").trim() || "다운로드_파일";
+
+      setCloudSyncStatus("syncing", "☁ " + label + " 저장 준비 중...");
+
+      try {
+        /*
+           private Storage이므로 현재 로그인 세션을 이용해 Blob으로 직접 받습니다.
+           signed URL을 현재 탭으로 열지 않으므로 업무보드 화면은 유지됩니다.
+        */
+        const { data: blob, error } = await sb.storage
+          .from("attachments")
+          .download(path);
+
+        if (error || !blob) {
+          throw error || new Error("파일 다운로드 실패");
+        }
+
+        const mimeType = fileType || blob.type || "application/octet-stream";
+
+        /* iPad / iPhone: 공유 시트를 열어 '파일에 저장' 등 iOS 저장 기능 사용 */
+        if (isIOSLikeDevice() && typeof File !== "undefined") {
+          const shareFile = new File([blob], safeName, { type: mimeType });
+
+          if (
+            navigator.share &&
+            navigator.canShare &&
+            navigator.canShare({ files: [shareFile] })
+          ) {
+            try {
+              await navigator.share({
+                title: safeName,
+                files: [shareFile]
+              });
+
+              setCloudSyncStatus("synced", "☁ 동기화 완료");
+              return;
+            } catch (shareError) {
+              /* 사용자가 공유 시트를 닫은 것은 오류로 처리하지 않음 */
+              if (shareError && shareError.name === "AbortError") {
+                setCloudSyncStatus("synced", "☁ 동기화 완료");
+                return;
+              }
+
+              console.warn("iPad/iPhone 공유 저장 실패 - 일반 다운로드로 전환:", shareError);
+            }
+          }
+        }
+
+        /* PC 또는 Web Share 미지원 브라우저: 일반 파일 다운로드 */
+        const objectUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = objectUrl;
+        anchor.download = safeName;
+        anchor.style.display = "none";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+
+        setTimeout(() => {
+          URL.revokeObjectURL(objectUrl);
+        }, 1500);
+
+        setCloudSyncStatus("synced", "☁ 동기화 완료");
+      } catch (error) {
+        console.error(label + " 저장 오류:", error);
+        alert(label + "을(를) 저장할 수 없습니다.");
+        setCloudSyncStatus("error", "☁ " + label + " 저장 실패");
+      }
+    }
+
     async function openReferenceFile(index) {
       const item = boardMeta.referenceFiles[index];
       if (!item || !item.path) return;
 
-      setCloudSyncStatus("syncing", "☁ 참고자료 여는 중...");
+      await openStorageFileInNewTab(
+        item.path,
+        item.name || item.title || "참고자료",
+        "참고자료"
+      );
+    }
 
-      const { data, error } = await sb.storage
-        .from("attachments")
-        .createSignedUrl(item.path, 300);
+    async function saveReferenceFile(index) {
+      const item = boardMeta.referenceFiles[index];
+      if (!item || !item.path) return;
 
-      if (error || !data || !data.signedUrl) {
-        console.error("참고자료 열기 오류:", error);
-        alert("참고자료를 열 수 없습니다.");
-        setCloudSyncStatus("error", "☁ 참고자료 열기 실패");
-        return;
-      }
-
-      window.location.href = data.signedUrl;
-      setCloudSyncStatus("synced", "☁ 동기화 완료");
+      await saveStorageFileToDevice(
+        item.path,
+        item.name || item.title || "참고자료",
+        item.type || "application/octet-stream",
+        "참고자료"
+      );
     }
 
     async function deleteReferenceItem(index) {
@@ -4072,8 +4269,12 @@ async function saveCloudBoard() {
                 <div class="att-list">
                   ${files.length > 0 ? files.map((file, idx) => `
                     <div class="att-pill">
-                      <span class="att-name" onclick="downloadFile('${task.id}', ${idx})">${file.name}</span>
-                      <button class="att-del" onclick="deleteAttachment('${task.id}', ${idx})">✕</button>
+                      <span class="att-name" title="${escapeHtml(file.name || '')}">${escapeHtml(file.name || '첨부파일')}</span>
+                      <span class="att-file-actions">
+                        <button class="att-action" type="button" onclick="openAttachmentFile('${task.id}', ${idx})" title="새 탭에서 보기">👁 보기</button>
+                        <button class="att-action" type="button" onclick="saveAttachmentFile('${task.id}', ${idx})" title="기기에 저장">⬇ 저장</button>
+                        <button class="att-del" type="button" onclick="deleteAttachment('${task.id}', ${idx})" title="첨부파일 삭제">✕</button>
+                      </span>
                     </div>
                   `).join('') : `<span style="font-size:.73rem;color:var(--text-sub);">등록된 붙임파일이 없습니다.</span>`}
                 </div>
@@ -4132,8 +4333,12 @@ async function saveCloudBoard() {
               <div class="att-list">
                 ${files.map((file, idx) => `
                   <div class="att-pill">
-                    <span class="att-name" onclick="downloadFile('${task.id}', ${idx})">${file.name}</span>
-                    <button class="att-del" onclick="deleteAttachment('${task.id}', ${idx})">✕</button>
+                    <span class="att-name" title="${escapeHtml(file.name || '')}">${escapeHtml(file.name || '첨부파일')}</span>
+                    <span class="att-file-actions">
+                      <button class="att-action" type="button" onclick="openAttachmentFile('${task.id}', ${idx})" title="새 탭에서 보기">👁 보기</button>
+                      <button class="att-action" type="button" onclick="saveAttachmentFile('${task.id}', ${idx})" title="기기에 저장">⬇ 저장</button>
+                      <button class="att-del" type="button" onclick="deleteAttachment('${task.id}', ${idx})" title="첨부파일 삭제">✕</button>
+                    </span>
                   </div>
                 `).join('')}
               </div>
@@ -4586,103 +4791,67 @@ async function attachFiles(
 
 
 /* ========================================================
-   첨부파일 열기
+   첨부파일 보기 / 저장
+   - 보기: 업무보드는 유지하고 새 탭에서 파일 표시
+   - 저장: iPad/iPhone은 공유 시트, PC는 직접 다운로드
 ======================================================== */
 
-async function downloadFile(
-    taskId,
-    fileIdx
-) {
-
-    const task =
-        tasksData.find(
-            t => t.id === taskId
-        );
-
+function getTaskAttachment(taskId, fileIdx) {
+    const task = tasksData.find(t => t.id === taskId);
 
     if (
         !task ||
         !task.files ||
         !task.files[fileIdx]
     ) {
-        return;
+        return null;
     }
 
+    return task.files[fileIdx];
+}
 
-    const file =
-        task.files[fileIdx];
+function validateCurrentStorageAttachment(file) {
+    if (!file) return false;
 
-
-    /*
-       앞으로 모든 첨부파일은
-       Supabase Storage path 방식만 사용
-    */
     if (!file.path) {
-
         alert(
             "이 첨부파일은 예전 테스트 방식으로 저장된 파일입니다.\n삭제 후 다시 첨부해 주세요."
         );
-
-        return;
+        return false;
     }
 
+    return true;
+}
 
-    setCloudSyncStatus(
-        "syncing",
-        "☁ 파일 여는 중..."
+async function openAttachmentFile(taskId, fileIdx) {
+    const file = getTaskAttachment(taskId, fileIdx);
+    if (!validateCurrentStorageAttachment(file)) return;
+
+    await openStorageFileInNewTab(
+        file.path,
+        file.name || "첨부파일",
+        "첨부파일"
     );
+}
 
+async function saveAttachmentFile(taskId, fileIdx) {
+    const file = getTaskAttachment(taskId, fileIdx);
+    if (!validateCurrentStorageAttachment(file)) return;
 
-    const {
-        data,
-        error
-    } =
-        await sb.storage
-            .from("attachments")
-            .createSignedUrl(
-                file.path,
-                300
-            );
-
-
-    if (
-        error ||
-        !data ||
-        !data.signedUrl
-    ) {
-
-        console.error(
-            "파일 열기 오류:",
-            error
-        );
-
-
-        alert(
-            "첨부파일을 열 수 없습니다."
-        );
-
-
-        setCloudSyncStatus(
-            "error",
-            "☁ 파일 열기 실패"
-        );
-
-        return;
-    }
-
-
-    /*
-       PC와 iPad 모두 동일한 방식
-       별도 저장 없이 브라우저에서 바로 열기
-    */
-    window.location.href =
-        data.signedUrl;
-
-
-    setCloudSyncStatus(
-        "synced",
-        "☁ 동기화 완료"
+    await saveStorageFileToDevice(
+        file.path,
+        file.name || "첨부파일",
+        file.type || "application/octet-stream",
+        "첨부파일"
     );
+}
+
+/*
+   과거 코드의 downloadFile() 호출이 남아 있어도 동작하도록 호환 유지
+   실제 동작은 '새 탭에서 보기'로 연결합니다.
+*/
+async function downloadFile(taskId, fileIdx) {
+    return openAttachmentFile(taskId, fileIdx);
 }
 
 
