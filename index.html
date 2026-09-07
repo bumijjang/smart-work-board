@@ -4174,7 +4174,6 @@ async function saveCloudBoard() {
         ) {
           try {
             await navigator.share({
-              title: safeName,
               files: [shareFile]
             });
 
