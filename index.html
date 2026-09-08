@@ -1465,6 +1465,57 @@ body.theme-soul .storage-usage {
     overflow-wrap: anywhere;
   }
 
+  .reference-item-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .reference-item-head .reference-title {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .reference-order-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .reference-order-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid var(--pill-border);
+    background: var(--pill-bg);
+    color: var(--text-main);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 900;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  .reference-order-btn:active:not(:disabled) {
+    background: var(--surface-3);
+    transform: scale(0.96);
+  }
+
+  .reference-order-btn:disabled {
+    opacity: 0.28;
+    cursor: default;
+  }
+
   /* 자료보관함도 업무 첨부파일과 동일하게 파일명을 눌러 동작 선택창을 엽니다. */
   .reference-file-trigger {
     margin-top: 9px;
@@ -1538,6 +1589,59 @@ body.theme-soul .storage-usage {
     font-size: 0.84rem;
     border: 1px dashed var(--border-color);
     border-radius: 9px;
+  }
+
+
+  .reference-pagination {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 2px;
+  }
+
+  .reference-page-info {
+    color: var(--text-sub);
+    font-size: 0.76rem;
+    font-weight: 750;
+    margin-right: 4px;
+    white-space: nowrap;
+  }
+
+  .reference-page-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 9px;
+    border-radius: 8px;
+    border: 1px solid var(--pill-border);
+    background: var(--pill-bg);
+    color: var(--text-main);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 850;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .reference-page-btn.active {
+    background: var(--button-bg);
+    color: var(--button-text);
+    border-color: transparent;
+  }
+
+  .reference-page-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .reference-page-ellipsis {
+    color: var(--text-sub);
+    font-size: 0.8rem;
+    padding: 0 2px;
   }
 
   /* 자료보관함 분류 관리 */
@@ -1626,6 +1730,9 @@ body.theme-soul .storage-usage {
     .reference-form .full,
     .reference-form-actions { grid-column: 1; }
     .reference-item { grid-template-columns: 1fr; }
+    .reference-order-btn { width: 38px; height: 38px; }
+    .reference-pagination { gap: 5px; }
+    .reference-page-info { width: 100%; margin-right: 0; text-align: center; }
     .reference-actions { justify-content: flex-end; }
     .category-manager-row { grid-template-columns: 1fr; }
     .category-manager-main { grid-template-columns: 1fr; }
@@ -2060,8 +2167,8 @@ body.theme-soul .storage-usage {
       </div>
 
       <div class="reference-toolbar">
-        <input id="referenceSearchInput" type="search" placeholder="🔎 자료명·파일명·메모 검색" oninput="renderReferenceLibrary()">
-        <select id="referenceCategoryFilter" onchange="renderReferenceLibrary()">
+        <input id="referenceSearchInput" type="search" placeholder="🔎 자료명·파일명·메모 검색" oninput="resetReferencePageAndRender()">
+        <select id="referenceCategoryFilter" onchange="resetReferencePageAndRender()">
           <option value="all">전체 분류</option>
         </select>
         <button class="btn-sync" type="button" onclick="openReferenceCategoryManager()">⚙ 분류 관리</button>
@@ -2092,6 +2199,7 @@ body.theme-soul .storage-usage {
       </div>
 
       <div class="reference-list" id="referenceList"></div>
+      <div class="reference-pagination" id="referencePagination" aria-label="자료보관함 페이지 이동"></div>
     </div>
   </div>
 
@@ -3168,8 +3276,35 @@ async function saveCloudBoard() {
       });
 
       const referenceFiles = Array.isArray(source.referenceFiles)
-        ? source.referenceFiles.filter(item => item && item.id && item.path)
+        ? source.referenceFiles
+            .filter(item => item && item.id && item.path)
+            .map(item => ({ ...item }))
         : [];
+
+      /*
+         자료보관함 사용자 지정 순서 보존
+         - 기존 자료(sortOrder 없음)는 최초 로드 시 등록일 최신순을 기본 순서로 사용
+         - 이후에는 sortOrder를 0부터 다시 부여해 로컬/Supabase에 동일하게 저장
+      */
+      referenceFiles.sort((a, b) => {
+        const aOrder = Number(a.sortOrder);
+        const bOrder = Number(b.sortOrder);
+        const aHasOrder = Number.isFinite(aOrder);
+        const bHasOrder = Number.isFinite(bOrder);
+
+        if (aHasOrder && bHasOrder && aOrder !== bOrder) {
+          return aOrder - bOrder;
+        }
+        if (aHasOrder !== bHasOrder) {
+          return aHasOrder ? -1 : 1;
+        }
+
+        return String(b.createdAt || "").localeCompare(String(a.createdAt || ""));
+      });
+
+      referenceFiles.forEach((item, index) => {
+        item.sortOrder = index;
+      });
 
       const rawCategories = Array.isArray(source.referenceCategories)
         ? source.referenceCategories
@@ -3732,7 +3867,57 @@ async function saveCloudBoard() {
       }
     }
 
+    const REFERENCE_PAGE_SIZE = 10;
+    let referenceCurrentPage = 1;
+
+    function reindexReferenceFiles() {
+      const files = boardMeta && Array.isArray(boardMeta.referenceFiles)
+        ? boardMeta.referenceFiles
+        : [];
+
+      files.forEach((item, index) => {
+        item.sortOrder = index;
+      });
+    }
+
+    function getFilteredReferenceItems() {
+      const query = (document.getElementById("referenceSearchInput")?.value || "")
+        .trim()
+        .toLowerCase();
+      const category = document.getElementById("referenceCategoryFilter")?.value || "all";
+
+      return (boardMeta.referenceFiles || [])
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => {
+          if (category !== "all" && item.category !== category) return false;
+          if (!query) return true;
+
+          const haystack = [
+            item.title,
+            item.category,
+            item.memo,
+            item.name
+          ].join(" ").toLowerCase();
+
+          return haystack.includes(query);
+        })
+        .sort((a, b) => {
+          const aOrder = Number(a.item.sortOrder);
+          const bOrder = Number(b.item.sortOrder);
+          if (Number.isFinite(aOrder) && Number.isFinite(bOrder) && aOrder !== bOrder) {
+            return aOrder - bOrder;
+          }
+          return a.index - b.index;
+        });
+    }
+
+    function resetReferencePageAndRender() {
+      referenceCurrentPage = 1;
+      renderReferenceLibrary();
+    }
+
     function openReferenceLibrary() {
+      referenceCurrentPage = 1;
       renderReferenceCategoryControls();
       document.getElementById("referenceModal").style.display = "flex";
       renderReferenceLibrary();
@@ -3767,31 +3952,105 @@ async function saveCloudBoard() {
       }
     }
 
+    function getReferencePageNumbers(totalPages, currentPage) {
+      if (totalPages <= 7) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+      }
+
+      const pages = [1];
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      if (start > 2) pages.push("ellipsis-start");
+      for (let page = start; page <= end; page++) pages.push(page);
+      if (end < totalPages - 1) pages.push("ellipsis-end");
+      pages.push(totalPages);
+
+      return pages;
+    }
+
+    function renderReferencePagination(totalItems) {
+      const pagination = document.getElementById("referencePagination");
+      if (!pagination) return;
+
+      const totalPages = Math.max(1, Math.ceil(totalItems / REFERENCE_PAGE_SIZE));
+      referenceCurrentPage = Math.min(Math.max(1, referenceCurrentPage), totalPages);
+
+      if (totalItems <= REFERENCE_PAGE_SIZE) {
+        pagination.innerHTML = totalItems > 0
+          ? `<span class="reference-page-info">총 ${totalItems}개</span>`
+          : "";
+        return;
+      }
+
+      const pageButtons = getReferencePageNumbers(totalPages, referenceCurrentPage)
+        .map(page => {
+          if (typeof page !== "number") {
+            return '<span class="reference-page-ellipsis">…</span>';
+          }
+
+          return `
+            <button
+              class="reference-page-btn${page === referenceCurrentPage ? " active" : ""}"
+              type="button"
+              onclick="goToReferencePage(${page})"
+              ${page === referenceCurrentPage ? 'aria-current="page"' : ""}
+            >${page}</button>
+          `;
+        })
+        .join("");
+
+      pagination.innerHTML = `
+        <span class="reference-page-info">총 ${totalItems}개 · ${referenceCurrentPage}/${totalPages} 페이지</span>
+        <button class="reference-page-btn" type="button" onclick="goToReferencePage(${referenceCurrentPage - 1})" ${referenceCurrentPage <= 1 ? "disabled" : ""}>‹</button>
+        ${pageButtons}
+        <button class="reference-page-btn" type="button" onclick="goToReferencePage(${referenceCurrentPage + 1})" ${referenceCurrentPage >= totalPages ? "disabled" : ""}>›</button>
+      `;
+    }
+
+    function goToReferencePage(page) {
+      const totalItems = getFilteredReferenceItems().length;
+      const totalPages = Math.max(1, Math.ceil(totalItems / REFERENCE_PAGE_SIZE));
+      const nextPage = Math.min(Math.max(1, Number(page) || 1), totalPages);
+
+      if (nextPage === referenceCurrentPage) return;
+      referenceCurrentPage = nextPage;
+      renderReferenceLibrary();
+
+      const list = document.getElementById("referenceList");
+      if (list) list.scrollTop = 0;
+    }
+
+    async function moveReferenceItem(index, direction) {
+      const visibleItems = getFilteredReferenceItems();
+      const currentPosition = visibleItems.findIndex(entry => entry.index === index);
+      const targetPosition = currentPosition + Number(direction);
+
+      if (currentPosition < 0 || targetPosition < 0 || targetPosition >= visibleItems.length) {
+        return;
+      }
+
+      const targetIndex = visibleItems[targetPosition].index;
+      const files = boardMeta.referenceFiles || [];
+
+      if (!files[index] || !files[targetIndex]) return;
+
+      [files[index], files[targetIndex]] = [files[targetIndex], files[index]];
+      reindexReferenceFiles();
+
+      await persistBoardMetaImmediately();
+      renderReferenceLibrary();
+    }
+
     function renderReferenceLibrary() {
       const list = document.getElementById("referenceList");
       if (!list) return;
 
-      const query = (document.getElementById("referenceSearchInput")?.value || "")
-        .trim()
-        .toLowerCase();
-      const category = document.getElementById("referenceCategoryFilter")?.value || "all";
+      const items = getFilteredReferenceItems();
+      const totalPages = Math.max(1, Math.ceil(items.length / REFERENCE_PAGE_SIZE));
+      referenceCurrentPage = Math.min(Math.max(1, referenceCurrentPage), totalPages);
 
-      const items = (boardMeta.referenceFiles || [])
-        .map((item, index) => ({ item, index }))
-        .filter(({ item }) => {
-          if (category !== "all" && item.category !== category) return false;
-          if (!query) return true;
-
-          const haystack = [
-            item.title,
-            item.category,
-            item.memo,
-            item.name
-          ].join(" ").toLowerCase();
-
-          return haystack.includes(query);
-        })
-        .sort((a, b) => String(b.item.createdAt || "").localeCompare(String(a.item.createdAt || "")));
+      renderReferencePagination(items.length);
 
       if (items.length === 0) {
         list.innerHTML = `
@@ -3803,12 +4062,39 @@ async function saveCloudBoard() {
         return;
       }
 
-      list.innerHTML = items.map(({ item, index }) => {
+      const startIndex = (referenceCurrentPage - 1) * REFERENCE_PAGE_SIZE;
+      const pageItems = items.slice(startIndex, startIndex + REFERENCE_PAGE_SIZE);
+
+      list.innerHTML = pageItems.map(({ item, index }) => {
         const createdDate = item.createdAt ? String(item.createdAt).slice(0, 10) : "";
+        const visiblePosition = items.findIndex(entry => entry.index === index);
+        const canMoveUp = visiblePosition > 0;
+        const canMoveDown = visiblePosition >= 0 && visiblePosition < items.length - 1;
+
         return `
           <div class="reference-item">
             <div>
-              <div class="reference-title">${escapeHtml(item.title || "참고자료")}</div>
+              <div class="reference-item-head">
+                <div class="reference-title">${escapeHtml(item.title || "참고자료")}</div>
+                <div class="reference-order-actions" aria-label="자료 순서 변경">
+                  <button
+                    class="reference-order-btn"
+                    type="button"
+                    onclick="moveReferenceItem(${index}, -1)"
+                    title="한 칸 위로 이동"
+                    aria-label="${escapeHtml(item.title || "참고자료")} 위로 이동"
+                    ${canMoveUp ? "" : "disabled"}
+                  >↑</button>
+                  <button
+                    class="reference-order-btn"
+                    type="button"
+                    onclick="moveReferenceItem(${index}, 1)"
+                    title="한 칸 아래로 이동"
+                    aria-label="${escapeHtml(item.title || "참고자료")} 아래로 이동"
+                    ${canMoveDown ? "" : "disabled"}
+                  >↓</button>
+                </div>
+              </div>
               <button
                 class="reference-file-trigger"
                 type="button"
@@ -4080,7 +4366,7 @@ async function saveCloudBoard() {
 
         if (uploadError) throw uploadError;
 
-        boardMeta.referenceFiles.push({
+        boardMeta.referenceFiles.unshift({
           id: referenceId,
           title: title.slice(0, 80),
           category: category,
@@ -4089,8 +4375,11 @@ async function saveCloudBoard() {
           name: file.name,
           type: file.type,
           size: file.size,
-          path: storagePath
+          path: storagePath,
+          sortOrder: 0
         });
+        reindexReferenceFiles();
+        referenceCurrentPage = 1;
 
         setStoredBoardMeta(boardMeta);
 
@@ -4174,6 +4463,7 @@ async function saveCloudBoard() {
         ) {
           try {
             await navigator.share({
+              title: safeName,
               files: [shareFile]
             });
 
@@ -4399,6 +4689,7 @@ async function saveCloudBoard() {
       }
 
       boardMeta.referenceFiles.splice(index, 1);
+      reindexReferenceFiles();
       setStoredBoardMeta(boardMeta);
 
       if (cloudReady) {
