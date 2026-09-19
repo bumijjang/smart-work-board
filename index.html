@@ -20,6 +20,8 @@
     --todo-color: #38bdf8;
     --doing1-color: #f59e0b;
     --doing2-color: #fb923c;
+    --doing3-color: #a78bfa;
+    --doing4-color: #f472b6;
     --done-color: #10b981;
     --alert-red: #ef4444;
 
@@ -227,6 +229,8 @@ body.theme-soul {
 .status-icon-default.doing2 {
   background: var(--doing2-color);
 }
+.status-icon-default.doing3 { background: var(--doing3-color); }
+.status-icon-default.doing4 { background: var(--doing4-color); }
 .status-icon-default.done { background: var(--done-color); }
 
 /* 블리치 전용 아이콘은 기본 테마에서 숨김 */
@@ -320,7 +324,7 @@ body.theme-soul .app-title {
     0 2px 12px rgba(0,0,0,.42);
 }
 
-/* 4개 컬럼: 배경을 가리는 면적 최소화 */
+/* 업무 컬럼: 배경을 가리는 면적 최소화 */
 body.theme-soul .kanban-grid {
   gap: 10px;
 }
@@ -363,6 +367,14 @@ body.theme-soul .col-header.doing1 {
 body.theme-soul .col-header.doing2 {
   border-color: #ff7454;
   box-shadow: inset 0 -1px 0 #ff7454, 0 7px 18px rgba(255,116,84,.06);
+}
+body.theme-soul .col-header.doing3 {
+  border-color: #a78bfa;
+  box-shadow: inset 0 -1px 0 #a78bfa, 0 7px 18px rgba(167,139,250,.06);
+}
+body.theme-soul .col-header.doing4 {
+  border-color: #f472b6;
+  box-shadow: inset 0 -1px 0 #f472b6, 0 7px 18px rgba(244,114,182,.06);
 }
 body.theme-soul .col-header.done {
   border-color: #48dfb5;
@@ -766,6 +778,165 @@ body.theme-soul .storage-usage {
 .theme-select:focus {
     border-color: var(--todo-color);
 }
+
+/* 업무보드 레이아웃 설정 버튼 */
+.btn-layout-settings {
+    background: var(--surface-2);
+    color: var(--text-main);
+    border: 1px solid var(--todo-color);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 850;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.08), 0 6px 18px rgba(0,0,0,.12);
+}
+.btn-layout-settings:hover { border-color: var(--link-color); }
+.btn-layout-settings:active { transform: scale(.98); background: var(--surface-3); }
+.btn-layout-current {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    color: var(--link-color);
+    font-size: .75rem;
+    font-weight: 900;
+}
+body.theme-soul .btn-layout-settings {
+    background: rgba(6,11,18,.88);
+    border-color: rgba(54,202,255,.72);
+    color: #fff9ef;
+}
+
+.board-layout-modal-box { max-width: 620px; }
+.board-layout-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.board-layout-option {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    min-height: 118px;
+    padding: 14px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--panel-bg);
+    color: var(--text-main);
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.board-layout-option:hover { border-color: var(--link-color); }
+.board-layout-option.active {
+    border-color: var(--todo-color);
+    box-shadow: inset 0 0 0 1px var(--todo-color);
+}
+.board-layout-option-title { font-size: 1rem; font-weight: 900; }
+.board-layout-option-desc { color: var(--text-sub); font-size: .75rem; line-height: 1.45; }
+.board-layout-preview { display: grid; gap: 3px; height: 28px; }
+.board-layout-preview.two { grid-template-columns: repeat(2, 1fr); }
+.board-layout-preview.four { grid-template-columns: repeat(4, 1fr); }
+.board-layout-preview.six { grid-template-columns: repeat(6, 1fr); }
+.board-layout-preview span { border-radius: 3px; background: var(--surface-3); border: 1px solid var(--pill-border); }
+@media (max-width: 640px) {
+  .board-layout-options { grid-template-columns: 1fr; }
+  .board-layout-option { min-height: auto; }
+}
+
+/* 컬럼 너비 설정 */
+.board-width-section {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+.board-width-section-title {
+    font-size: .82rem;
+    font-weight: 900;
+    color: var(--text-main);
+}
+.board-width-section-desc {
+    font-size: .73rem;
+    line-height: 1.45;
+    color: var(--text-sub);
+}
+.board-width-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.board-width-option {
+    appearance: none;
+    -webkit-appearance: none;
+    min-height: 66px;
+    padding: 9px 8px;
+    border-radius: 9px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-1);
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+}
+.board-width-option:hover { border-color: var(--link-color); }
+.board-width-option.active {
+    border-color: var(--todo-color);
+    box-shadow: inset 0 0 0 1px var(--todo-color);
+}
+.board-width-option-label { font-size: .86rem; font-weight: 900; }
+.board-width-preview {
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.board-width-preview::before {
+    content: "";
+    display: block;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--surface-3);
+    border: 1px solid var(--pill-border);
+}
+.board-width-preview.narrow::before { width: 44%; }
+.board-width-preview.default::before { width: 66%; }
+.board-width-preview.wide::before { width: 88%; }
+@media (max-width: 640px) {
+  .board-width-options { grid-template-columns: 1fr; }
+}
+
+/* 사용자 지정 컬럼 아이콘 */
+.custom-column-icon {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25em;
+    line-height: 1;
+    font-size: 1.05em;
+    flex: 0 0 auto;
+}
+.has-custom-column-icon > .custom-column-icon { display: inline-flex; }
+.has-custom-column-icon > .status-icon-default,
+.has-custom-column-icon > .bleach-status-icon { display: none !important; }
   .btn-new-task {
     background: var(--button-bg);
     color: var(--button-text);
@@ -783,7 +954,7 @@ body.theme-soul .storage-usage {
   /* iPad Portrait Tab Switcher */
   .tab-nav {
     display: none;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(var(--board-column-count, 4), 1fr);
     gap: 6px;
     max-width: 1600px;
     margin: 0 auto 16px auto;
@@ -809,10 +980,22 @@ body.theme-soul .storage-usage {
   /* Kanban Board Grid */
   .kanban-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(var(--board-column-count, 4), 1fr);
     gap: 14px;
     max-width: 1600px;
     margin: 0 auto;
+  }
+
+  /* 6칸 모드에서는 각 컬럼 폭을 유지하면서 가로 스크롤로 탐색 */
+  .kanban-grid.board-layout-6 {
+    scrollbar-width: thin;
+    scrollbar-color: var(--pill-border) transparent;
+  }
+  .kanban-grid.board-layout-6::-webkit-scrollbar { height: 10px; }
+  .kanban-grid.board-layout-6::-webkit-scrollbar-track { background: transparent; }
+  .kanban-grid.board-layout-6::-webkit-scrollbar-thumb {
+    background: var(--pill-border);
+    border-radius: 999px;
   }
 
   @media (max-width: 1100px), (orientation: portrait) and (max-width: 1024px) {
@@ -824,8 +1007,31 @@ body.theme-soul .storage-usage {
 
   @media (orientation: landscape) and (min-width: 1101px) {
     .tab-nav { display: none !important; }
-    .kanban-grid { grid-template-columns: repeat(4, 1fr) !important; }
-    .kanban-col { display: flex !important; }
+    .kanban-grid {
+      grid-template-columns: repeat(var(--board-column-count, 4), minmax(var(--board-column-min-width, 300px), 1fr)) !important;
+      max-width: calc(100vw - 32px);
+      overflow-x: auto;
+      overflow-y: visible;
+      padding: 0 2px 10px;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: var(--pill-border) transparent;
+    }
+    .kanban-grid::-webkit-scrollbar { height: 10px; }
+    .kanban-grid::-webkit-scrollbar-track { background: transparent; }
+    .kanban-grid::-webkit-scrollbar-thumb {
+      background: var(--pill-border);
+      border-radius: 999px;
+    }
+    .kanban-col {
+      display: flex !important;
+      min-width: var(--board-column-min-width, 300px);
+      scroll-snap-align: start;
+    }
+
+    .kanban-grid.board-layout-6 {
+      scroll-snap-type: x proximity;
+    }
   }
 
   /* Column Styles */
@@ -842,13 +1048,17 @@ body.theme-soul .storage-usage {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 6px;
     margin-bottom: 14px;
     padding-bottom: 8px;
     border-bottom: 2px solid;
   }
+  .col-header .col-title { min-width: 0; flex: 1 1 auto; }
   .col-header.todo { border-color: var(--todo-color); color: var(--todo-color); }
   .col-header.doing1 { border-color: var(--doing1-color); color: var(--doing1-color); }
   .col-header.doing2 { border-color: var(--doing2-color); color: var(--doing2-color); }
+  .col-header.doing3 { border-color: var(--doing3-color); color: var(--doing3-color); }
+  .col-header.doing4 { border-color: var(--doing4-color); color: var(--doing4-color); }
   .col-header.done { border-color: var(--done-color); color: var(--done-color); }
   .col-title { font-size: 0.98rem; font-weight: 800; display: flex; align-items: center; gap: 5px; }
   .col-count {
@@ -858,6 +1068,63 @@ body.theme-soul .storage-usage {
     padding: 2px 8px;
     border-radius: 12px;
     font-weight: 700;
+  }
+
+  /* 컬럼 순서 드래그 */
+  .kanban-col { position: relative; }
+
+  .column-drag-grip {
+    width: 30px;
+    height: 28px;
+    padding: 0;
+    margin-left: auto;
+    margin-right: 2px;
+    border-radius: 6px;
+    border: 1px dashed var(--pill-border);
+    background: var(--input-bg);
+    color: var(--text-sub);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    flex: 0 0 auto;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .column-drag-grip:active {
+    cursor: grabbing;
+    background: var(--surface-3);
+    color: var(--text-main);
+  }
+
+  .kanban-col.column-dragging { opacity: .58; }
+
+  .kanban-col.column-drop-before::after,
+  .kanban-col.column-drop-after::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    border-radius: 999px;
+    background: var(--link-color);
+    box-shadow: 0 0 0 1px var(--bg-color), 0 0 12px rgba(56,189,248,.55);
+    z-index: 8;
+    pointer-events: none;
+  }
+
+  .kanban-col.column-drop-before::after { left: -9px; }
+  .kanban-col.column-drop-after::after { right: -9px; }
+
+  @media (max-width: 1100px), (orientation: portrait) and (max-width: 1024px) {
+    .column-drag-grip { display: none !important; }
+  }
+
+  body.theme-soul .column-drag-grip {
+    background: rgba(6,11,18,.88);
+    border-color: rgba(86,126,157,.54);
+    color: #fff9ef;
   }
 
   .task-list {
@@ -1029,7 +1296,42 @@ body.theme-soul .storage-usage {
     padding: 3px 6px;
   }
 
-  .att-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .att-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .att-item { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; }
+  .attachment-order-controls { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; }
+  .attachment-order-btn {
+    width: 25px; height: 25px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 5px; border: 1px solid var(--pill-border); background: var(--input-bg); color: var(--text-sub);
+    font-size: .72rem; font-weight: 900; cursor: pointer;
+  }
+  .attachment-order-btn:disabled { opacity: .28; cursor: default; }
+  .attachment-order-btn:active:not(:disabled) { background: var(--surface-3); color: var(--text-main); }
+  .attachment-drag-grip {
+    width: 25px; height: 25px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 5px; border: 1px dashed var(--pill-border); background: transparent; color: var(--text-sub);
+    cursor: grab; user-select: none; -webkit-user-select: none; flex: 0 0 auto;
+    font-size: .82rem; line-height: 1;
+  }
+  .attachment-drag-grip:active { cursor: grabbing; background: var(--surface-3); color: var(--text-main); }
+  .att-item { position: relative; }
+  .att-item.attachment-dragging { opacity: .45; }
+
+  .att-item.attachment-drop-before::before,
+  .att-item.attachment-drop-after::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--link-color);
+    box-shadow: 0 0 8px rgba(56,189,248,.6);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .att-item.attachment-drop-before::before { left: -5px; }
+  .att-item.attachment-drop-after::after { right: -5px; }
   .att-pill {
     background: var(--pill-bg);
     color: var(--text-main);
@@ -1558,6 +1860,45 @@ body.theme-soul .storage-usage {
     word-break: break-word;
   }
 
+  .reference-files-wrap { margin-top: 9px; display: flex; flex-direction: column; gap: 7px; }
+  .reference-file-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px; }
+  .reference-file-row .reference-file-trigger { margin-top: 0; }
+  .reference-file-order-actions { display: inline-flex; align-items: center; gap: 4px; }
+  .reference-file-order-btn {
+    width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 7px; border: 1px solid var(--pill-border); background: var(--input-bg); color: var(--text-sub); font-weight: 900; cursor: pointer;
+  }
+  .reference-file-order-btn:disabled { opacity: .28; cursor: default; }
+  .reference-file-order-btn:active:not(:disabled) { background: var(--surface-3); color: var(--text-main); }
+  .reference-file-drag-grip {
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 7px; border: 1px dashed var(--pill-border); background: transparent; color: var(--text-sub);
+    cursor: grab; user-select: none; -webkit-user-select: none; flex: 0 0 auto; font-size: .9rem;
+  }
+  .reference-file-drag-grip:active { cursor: grabbing; background: var(--surface-3); color: var(--text-main); }
+  .reference-file-row { position: relative; }
+  .reference-file-row.attachment-dragging { opacity: .45; }
+
+  .reference-file-row.attachment-drop-before::before,
+  .reference-file-row.attachment-drop-after::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--link-color);
+    box-shadow: 0 0 8px rgba(56,189,248,.6);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .reference-file-row.attachment-drop-before::before { top: -5px; }
+  .reference-file-row.attachment-drop-after::after { bottom: -5px; }
+  .reference-empty-files { padding: 11px 12px; border: 1px dashed var(--pill-border); border-radius: 8px; color: var(--text-sub); font-size: .8rem; }
+  .reference-file-add-row { display: flex; justify-content: flex-end; margin-top: 7px; }
+  .board-column-hidden, .board-tab-hidden { display: none !important; }
+
   .reference-meta {
     margin-top: 8px;
     display: flex;
@@ -1948,6 +2289,15 @@ body.theme-soul .storage-usage {
     📚 자료보관함
 </button>
 
+<button class="btn-layout-settings"
+        id="boardLayoutSettingsButton"
+        type="button"
+        title="업무보드 2칸·4칸·6칸 및 컬럼 너비 설정"
+        onclick="openBoardLayoutSettings()">
+    ▦ 레이아웃 설정
+    <span class="btn-layout-current" id="boardLayoutCurrent">4칸</span>
+</button>
+
 <select id="themeSelect" class="theme-select">
     <option value="dark">🌙 다크 모드</option>
     <option value="light">☀️ 라이트 모드</option>
@@ -1969,7 +2319,7 @@ body.theme-soul .storage-usage {
   <ellipse cx="38" cy="31" rx="3.2" ry="4.2" fill="#1b2027"/>
   <path d="M27 40c3 3 7 3 10 0" fill="none" stroke="#6b3113" stroke-width="2.2" stroke-linecap="round"/>
   <path d="m32 34-3.5 3.5h7z" fill="#fff1d5" stroke="#6b3113" stroke-width="1"/>
-</svg></span><span class="tab-label-text">해야할 업무</span> (<span id="tab-count-todo">0</span>)</button>
+</svg></span><span class="tab-label-text">해야할 업무</span></button>
     <button class="tab-btn" id="tabbtn-doing1" data-status="doing1" onclick="switchTab('doing1', this)"><span class="status-icon-default doing1" aria-hidden="true"></span><span class="bleach-status-icon sm bleach-zangetsu" aria-hidden="true">
 <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
   <circle cx="32" cy="32" r="28" fill="#101720" stroke="#ff982f" stroke-width="2"/>
@@ -1978,7 +2328,7 @@ body.theme-soul .storage-usage {
     <rect x="20" y="40" width="24" height="4" rx="2" fill="#f18c2e"/>
     <rect x="29" y="44" width="6" height="11" rx="2" fill="#1a1f26"/>
   </g>
-</svg></span><span class="tab-label-text">진행 Ⅰ</span> (<span id="tab-count-doing1">0</span>)</button>
+</svg></span><span class="tab-label-text">진행 Ⅰ</span></button>
     <button class="tab-btn" id="tabbtn-doing2" data-status="doing2" onclick="switchTab('doing2', this)"><span class="status-icon-default doing2" aria-hidden="true"></span><span class="bleach-status-icon sm bleach-mask" aria-hidden="true">
 <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
   <circle cx="32" cy="32" r="28" fill="#111720" stroke="#ff7b58" stroke-width="2"/>
@@ -1988,7 +2338,9 @@ body.theme-soul .storage-usage {
   <circle cx="38" cy="31" r="3" fill="#24272d"/>
   <path d="M25 41c4 3 10 3 14 0" fill="none" stroke="#9a2e25" stroke-width="2"/>
   <path d="M18 28l8-3M46 34l-8-3" stroke="#816d62" stroke-width="1.6"/>
-</svg></span><span class="tab-label-text">진행 Ⅱ</span> (<span id="tab-count-doing2">0</span>)</button>
+</svg></span><span class="tab-label-text">진행 Ⅱ</span></button>
+    <button class="tab-btn board-tab-hidden" id="tabbtn-doing3" data-status="doing3" onclick="switchTab('doing3', this)"><span class="status-icon-default doing3" aria-hidden="true"></span><span class="bleach-status-icon sm" aria-hidden="true"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="28" fill="#101720" stroke="#a78bfa" stroke-width="2"/><text x="32" y="39" text-anchor="middle" font-size="22" font-weight="800" fill="#f5f3ff">Ⅲ</text></svg></span><span class="tab-label-text">진행 Ⅲ</span></button>
+    <button class="tab-btn board-tab-hidden" id="tabbtn-doing4" data-status="doing4" onclick="switchTab('doing4', this)"><span class="status-icon-default doing4" aria-hidden="true"></span><span class="bleach-status-icon sm" aria-hidden="true"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="28" fill="#101720" stroke="#f472b6" stroke-width="2"/><text x="32" y="39" text-anchor="middle" font-size="22" font-weight="800" fill="#fff1f2">Ⅳ</text></svg></span><span class="tab-label-text">진행 Ⅳ</span></button>
     <button class="tab-btn" id="tabbtn-done" data-status="done" onclick="switchTab('done', this)"><span class="status-icon-default done" aria-hidden="true"></span><span class="bleach-status-icon sm bleach-soul" aria-hidden="true">
 <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -2001,10 +2353,10 @@ body.theme-soul .storage-usage {
   <circle cx="32" cy="32" r="28" fill="#101720" stroke="#48dfb5" stroke-width="2"/>
   <path d="M32 11c8 9 13 16 13 25 0 9-6 16-13 16s-13-7-13-16c0-9 5-16 13-25z" fill="url(#bleachSoulGrad)"/>
   <path d="m25 34 5 5 10-13" fill="none" stroke="#0d4557" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg></span><span class="tab-label-text">완료</span> (<span id="tab-count-done">0</span>)</button>
+</svg></span><span class="tab-label-text">완료</span></button>
   </nav>
 
-  <!-- Kanban Board (4단 컬럼) -->
+  <!-- Kanban Board (사용자 선택 2 / 4 / 6단 컬럼) -->
   <main class="kanban-grid">
     <section class="kanban-col active-col" id="col-todo" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'todo')">
       <div class="col-header todo">
@@ -2018,7 +2370,7 @@ body.theme-soul .storage-usage {
   <path d="M27 40c3 3 7 3 10 0" fill="none" stroke="#6b3113" stroke-width="2.2" stroke-linecap="round"/>
   <path d="m32 34-3.5 3.5h7z" fill="#fff1d5" stroke="#6b3113" stroke-width="1"/>
 </svg></span><span class="col-title-text">해야할 업무</span></span>
-        <span class="col-count" id="count-todo">0</span>
+        <span class="col-count" id="count-todo" title="현재 컬럼의 업무 카드 수">0</span>
       </div>
       <div class="task-list" id="list-todo"></div>
     </section>
@@ -2034,7 +2386,7 @@ body.theme-soul .storage-usage {
     <rect x="29" y="44" width="6" height="11" rx="2" fill="#1a1f26"/>
   </g>
 </svg></span><span class="col-title-text">진행중인 업무 Ⅰ</span></span>
-        <span class="col-count" id="count-doing1">0</span>
+        <span class="col-count" id="count-doing1" title="현재 컬럼의 업무 카드 수">0</span>
       </div>
       <div class="task-list" id="list-doing1"></div>
     </section>
@@ -2051,9 +2403,25 @@ body.theme-soul .storage-usage {
   <path d="M25 41c4 3 10 3 14 0" fill="none" stroke="#9a2e25" stroke-width="2"/>
   <path d="M18 28l8-3M46 34l-8-3" stroke="#816d62" stroke-width="1.6"/>
 </svg></span><span class="col-title-text">진행중인 업무 Ⅱ</span></span>
-        <span class="col-count" id="count-doing2">0</span>
+        <span class="col-count" id="count-doing2" title="현재 컬럼의 업무 카드 수">0</span>
       </div>
       <div class="task-list" id="list-doing2"></div>
+    </section>
+
+    <section class="kanban-col board-column-hidden" id="col-doing3" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'doing3')">
+      <div class="col-header doing3">
+        <span class="col-title" id="coltitle-doing3"><span class="status-icon-default doing3" aria-hidden="true"></span><span class="bleach-status-icon" aria-hidden="true"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="28" fill="#101720" stroke="#a78bfa" stroke-width="2"/><text x="32" y="39" text-anchor="middle" font-size="22" font-weight="800" fill="#f5f3ff">Ⅲ</text></svg></span><span class="col-title-text">진행중인 업무 Ⅲ</span></span>
+        <span class="col-count" id="count-doing3" title="현재 컬럼의 업무 카드 수">0</span>
+      </div>
+      <div class="task-list" id="list-doing3"></div>
+    </section>
+
+    <section class="kanban-col board-column-hidden" id="col-doing4" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'doing4')">
+      <div class="col-header doing4">
+        <span class="col-title" id="coltitle-doing4"><span class="status-icon-default doing4" aria-hidden="true"></span><span class="bleach-status-icon" aria-hidden="true"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="28" fill="#101720" stroke="#f472b6" stroke-width="2"/><text x="32" y="39" text-anchor="middle" font-size="22" font-weight="800" fill="#fff1f2">Ⅳ</text></svg></span><span class="col-title-text">진행중인 업무 Ⅳ</span></span>
+        <span class="col-count" id="count-doing4" title="현재 컬럼의 업무 카드 수">0</span>
+      </div>
+      <div class="task-list" id="list-doing4"></div>
     </section>
 
     <section class="kanban-col" id="col-done" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'done')">
@@ -2071,7 +2439,7 @@ body.theme-soul .storage-usage {
   <path d="M32 11c8 9 13 16 13 25 0 9-6 16-13 16s-13-7-13-16c0-9 5-16 13-25z" fill="url(#bleachSoulGrad)"/>
   <path d="m25 34 5 5 10-13" fill="none" stroke="#0d4557" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg></span><span class="col-title-text">진행완료 업무</span></span>
-        <span class="col-count" id="count-done">0</span>
+        <span class="col-count" id="count-done" title="현재 컬럼의 업무 카드 수">0</span>
       </div>
       <div class="task-list" id="list-done"></div>
     </section>
@@ -2107,12 +2475,66 @@ body.theme-soul .storage-usage {
     </div>
   </div>
 
-  <!-- 컬럼 제목 / 글자 크기 / 색상 설정 -->
+
+  <!-- 업무보드 2 / 4 / 6칸 레이아웃 설정 -->
+  <div class="modal-overlay" id="boardLayoutModal" onclick="if(event.target===this) closeBoardLayoutSettings()">
+    <div class="modal-box board-layout-modal-box" role="dialog" aria-modal="true" aria-labelledby="boardLayoutTitle">
+      <h3 id="boardLayoutTitle" style="font-size:1.1rem; color:var(--text-main);">▦ 레이아웃 설정</h3>
+      <p style="font-size:0.79rem; color:var(--text-sub); line-height:1.55;">
+        업무보드에서 사용할 컬럼 수와 컬럼 너비를 선택합니다. 숨겨질 컬럼에 업무가 남아 있으면 축소되지 않습니다.<br>
+        PC에서는 컬럼 헤더의 6점 그립(⠿)을 끌어 컬럼 순서도 자유롭게 바꿀 수 있습니다.
+      </p>
+      <div class="board-layout-options">
+        <button class="board-layout-option" type="button" data-layout-count="2" onclick="selectBoardLayoutCount(2)">
+          <div class="board-layout-preview two"><span></span><span></span></div>
+          <div class="board-layout-option-title">2칸</div>
+          <div class="board-layout-option-desc">해야할 업무 · 진행완료 업무</div>
+        </button>
+        <button class="board-layout-option" type="button" data-layout-count="4" onclick="selectBoardLayoutCount(4)">
+          <div class="board-layout-preview four"><span></span><span></span><span></span><span></span></div>
+          <div class="board-layout-option-title">4칸</div>
+          <div class="board-layout-option-desc">해야할 업무 · 진행 Ⅰ · 진행 Ⅱ · 완료</div>
+        </button>
+        <button class="board-layout-option" type="button" data-layout-count="6" onclick="selectBoardLayoutCount(6)">
+          <div class="board-layout-preview six"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="board-layout-option-title">6칸</div>
+          <div class="board-layout-option-desc">진행 Ⅲ · 진행 Ⅳ까지 포함한 전체 6컬럼</div>
+        </button>
+      </div>
+
+      <div class="board-width-section">
+        <div class="board-width-section-title">↔ 컬럼 너비</div>
+        <div class="board-width-section-desc">
+          PC 가로 화면에서 컬럼의 최소 폭을 조절합니다. 넓게 설정하면 4칸·6칸에서 가로 스크롤이 생길 수 있습니다. 선택값은 자동 저장됩니다.
+        </div>
+        <div class="board-width-options">
+          <button class="board-width-option" type="button" data-width-mode="narrow" onclick="selectBoardColumnWidth('narrow')">
+            <span class="board-width-preview narrow" aria-hidden="true"></span>
+            <span class="board-width-option-label">좁게</span>
+          </button>
+          <button class="board-width-option" type="button" data-width-mode="default" onclick="selectBoardColumnWidth('default')">
+            <span class="board-width-preview default" aria-hidden="true"></span>
+            <span class="board-width-option-label">기본</span>
+          </button>
+          <button class="board-width-option" type="button" data-width-mode="wide" onclick="selectBoardColumnWidth('wide')">
+            <span class="board-width-preview wide" aria-hidden="true"></span>
+            <span class="board-width-option-label">넓게</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn-sync" type="button" onclick="closeBoardLayoutSettings()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 컬럼 제목 / 글자 크기 / 색상 / 아이콘 설정 -->
   <div class="modal-overlay" id="columnSettingsModal">
     <div class="modal-box" style="max-width:520px;">
-      <h3 style="font-size:1.1rem; color:var(--text-main);">✎ 컬럼 제목 설정</h3>
+      <h3 style="font-size:1.1rem; color:var(--text-main);">✎ 컬럼 설정</h3>
       <p style="font-size:0.79rem; color:var(--text-sub); line-height:1.5;">
-        컬럼의 기능(todo / doing1 / doing2 / done)은 그대로 유지하고 화면에 보이는 제목만 변경합니다.
+        컬럼의 내부 상태값은 유지하고 화면에 보이는 제목·글자 크기·색상·아이콘을 변경합니다. 진행 Ⅲ·Ⅳ도 동일하게 설정할 수 있습니다.
       </p>
 
       <div class="column-settings-grid">
@@ -2139,6 +2561,11 @@ body.theme-soul .storage-usage {
           <input class="setting-color" id="columnColorInput" type="color">
           <span id="columnColorValue" style="font-size:.8rem;color:var(--text-sub);"></span>
         </div>
+      </div>
+
+      <div class="setting-field">
+        <label for="columnIconInput">사용자 아이콘 <span style="font-weight:600;opacity:.72;">(선택사항 · 비우면 기본 아이콘 사용)</span></label>
+        <input class="setting-input" id="columnIconInput" maxlength="8" type="text" placeholder="예: ⚔️  📌  ⭐  Ⅲ">
       </div>
 
       <div class="column-preview" id="columnSettingPreview">미리보기</div>
@@ -2189,8 +2616,8 @@ body.theme-soul .storage-usage {
           <textarea id="referenceMemoInput" maxlength="500" placeholder="자료의 용도나 참고사항을 간단히 적어두세요."></textarea>
         </div>
         <div class="setting-field full">
-          <label for="referenceFileInput">첨부파일</label>
-          <input id="referenceFileInput" type="file">
+          <label for="referenceFileInput">첨부파일 (여러 개 선택 가능)</label>
+          <input id="referenceFileInput" type="file" multiple>
         </div>
         <div class="reference-form-actions">
           <button class="btn-sync" type="button" onclick="toggleReferenceAddForm(false)">취소</button>
@@ -2242,6 +2669,7 @@ body.theme-soul .storage-usage {
   </div>
 
   <input type="file" id="directFileInput" multiple style="position:absolute;width:1px;height:1px;opacity:0;" onchange="handleDirectFileSelected(this)">
+  <input type="file" id="referenceDirectFileInput" multiple style="position:absolute;width:1px;height:1px;opacity:0;" onchange="handleReferenceFilesSelected(this)">
   <input type="file" id="backupFileInput" accept=".json" style="position:absolute;width:1px;height:1px;opacity:0;" onchange="importDataBackup(this)">
 
   <script>
@@ -2275,6 +2703,20 @@ const sb = window.supabase.createClient(
 let cloudReady = false;
 let cloudSaveTimer = null;
 
+/* ========================================================
+   2026-09-19 기능 수정
+   1) 업무 붙임파일 순서 변경(↑/↓ + 마우스 드래그)
+   2) 자료보관함 다중 첨부 + 첨부파일 순서 변경(↑/↓ + 마우스 드래그)
+   3) 컬럼별 업무 카드 개수 배지 유지
+   4) 상단 '레이아웃 설정' 버튼에서 업무보드 2 / 4 / 6칸 선택
+      - 축소 시 숨겨질 업무가 있으면 변경을 막아 데이터 누락 방지
+   5) 모든 컬럼(6칸 모드의 진행 Ⅲ·Ⅳ 포함) 제목·글자크기·색상·사용자 아이콘 설정
+   6) 6칸 모드에서 컬럼 최소 폭을 보장하고 가로 스크롤 지원
+   7) 컬럼 자체를 드래그하여 순서 변경 + 순서 저장
+   8) 업무/자료보관함 첨부파일 드래그 시 삽입 위치 선 표시
+   9) 컬럼 너비 좁게 / 기본 / 넓게 선택 + 로컬·클라우드 저장
+======================================================== */
+
 /*
    보드 사용자 설정은 테마 초기화보다 먼저 기본값이 필요합니다.
    실제 저장값은 아래 로컬 스토리지 엔진에서 불러옵니다.
@@ -2283,10 +2725,25 @@ const BOARD_META_STORAGE_KEY = "SMART_BOARD_META_V3";
 const BOARD_META_RECORD_ID = "__SMART_BOARD_META_V3__";
 
 const DEFAULT_COLUMN_SETTINGS = {
-  todo:   { label: "해야할 업무",       fontSize: 16, color: "#38bdf8" },
-  doing1: { label: "진행중인 업무 Ⅰ",  fontSize: 16, color: "#f59e0b" },
-  doing2: { label: "진행중인 업무 Ⅱ",  fontSize: 16, color: "#fb923c" },
-  done:   { label: "진행완료 업무",     fontSize: 16, color: "#10b981" }
+  todo:   { label: "해야할 업무",       fontSize: 16, color: "#38bdf8", icon: "" },
+  doing1: { label: "진행중인 업무 Ⅰ",  fontSize: 16, color: "#f59e0b", icon: "" },
+  doing2: { label: "진행중인 업무 Ⅱ",  fontSize: 16, color: "#fb923c", icon: "" },
+  doing3: { label: "진행중인 업무 Ⅲ",  fontSize: 16, color: "#a78bfa", icon: "" },
+  doing4: { label: "진행중인 업무 Ⅳ",  fontSize: 16, color: "#f472b6", icon: "" },
+  done:   { label: "진행완료 업무",     fontSize: 16, color: "#10b981", icon: "" }
+};
+
+const ALL_BOARD_STATUSES = ["todo", "doing1", "doing2", "doing3", "doing4", "done"];
+const BOARD_COLUMN_STATUS_MAP = {
+  2: ["todo", "done"],
+  4: ["todo", "doing1", "doing2", "done"],
+  6: ["todo", "doing1", "doing2", "doing3", "doing4", "done"]
+};
+
+const BOARD_COLUMN_WIDTH_PRESETS = {
+  narrow:  { label: "좁게", minWidth: 260 },
+  default: { label: "기본", minWidth: 300 },
+  wide:    { label: "넓게", minWidth: 380 }
 };
 
 const DEFAULT_REFERENCE_CATEGORIES = [
@@ -2314,6 +2771,8 @@ function getThemeStatusMeta() {
         todo: getColumnSetting("todo").label,
         doing1: getColumnSetting("doing1").label,
         doing2: getColumnSetting("doing2").label,
+        doing3: getColumnSetting("doing3").label,
+        doing4: getColumnSetting("doing4").label,
         done: getColumnSetting("done").label
     };
 
@@ -2325,6 +2784,8 @@ function getThemeStatusMeta() {
             todo:   { board: labels.todo,   mobile: labels.todo,   option: "🦁 " + labels.todo },
             doing1: { board: labels.doing1, mobile: labels.doing1, option: "⚔️ " + labels.doing1 },
             doing2: { board: labels.doing2, mobile: labels.doing2, option: "🎭 " + labels.doing2 },
+            doing3: { board: labels.doing3, mobile: labels.doing3, option: "✦ " + labels.doing3 },
+            doing4: { board: labels.doing4, mobile: labels.doing4, option: "✧ " + labels.doing4 },
             done:   { board: labels.done,   mobile: labels.done,   option: "💠 " + labels.done }
         };
     }
@@ -2333,6 +2794,8 @@ function getThemeStatusMeta() {
         todo:   { board: labels.todo,   mobile: labels.todo,   option: "🔵 " + labels.todo },
         doing1: { board: labels.doing1, mobile: labels.doing1, option: "🟠 " + labels.doing1 },
         doing2: { board: labels.doing2, mobile: labels.doing2, option: "🟠 " + labels.doing2 },
+        doing3: { board: labels.doing3, mobile: labels.doing3, option: "🟣 " + labels.doing3 },
+        doing4: { board: labels.doing4, mobile: labels.doing4, option: "🩷 " + labels.doing4 },
         done:   { board: labels.done,   mobile: labels.done,   option: "🟢 " + labels.done }
     };
 }
@@ -2340,6 +2803,356 @@ function getThemeStatusMeta() {
 function getStatusOptionLabel(status) {
     const meta = getThemeStatusMeta();
     return meta[status] ? meta[status].option : status;
+}
+
+function getBoardColumnCount() {
+    const value = Number(boardMeta && boardMeta.boardColumnCount);
+    return [2, 4, 6].includes(value) ? value : 4;
+}
+
+function getBoardColumnWidthMode() {
+    const mode = String(boardMeta && boardMeta.boardColumnWidthMode || "default");
+    return Object.prototype.hasOwnProperty.call(BOARD_COLUMN_WIDTH_PRESETS, mode)
+      ? mode
+      : "default";
+}
+
+function getBoardColumnWidthPreset() {
+    return BOARD_COLUMN_WIDTH_PRESETS[getBoardColumnWidthMode()] || BOARD_COLUMN_WIDTH_PRESETS.default;
+}
+
+function getBoardColumnOrder() {
+    const rawOrder = boardMeta && Array.isArray(boardMeta.columnOrder)
+      ? boardMeta.columnOrder
+      : ALL_BOARD_STATUSES;
+
+    const normalized = [];
+    rawOrder.forEach(status => {
+      if (ALL_BOARD_STATUSES.includes(status) && !normalized.includes(status)) {
+        normalized.push(status);
+      }
+    });
+    ALL_BOARD_STATUSES.forEach(status => {
+      if (!normalized.includes(status)) normalized.push(status);
+    });
+
+    return normalized;
+}
+
+function getActiveStatuses() {
+    const allowed = BOARD_COLUMN_STATUS_MAP[getBoardColumnCount()] || BOARD_COLUMN_STATUS_MAP[4];
+    return getBoardColumnOrder().filter(status => allowed.includes(status));
+}
+
+function buildStatusOptionsHtml(currentStatus) {
+    return getActiveStatuses().map(status =>
+      `<option value="${status}" ${currentStatus === status ? 'selected' : ''}>${getStatusOptionLabel(status)}</option>`
+    ).join('');
+}
+
+function applyBoardColumnLayout() {
+    const count = getBoardColumnCount();
+    const activeStatuses = getActiveStatuses();
+    const columnOrder = getBoardColumnOrder();
+    const widthMode = getBoardColumnWidthMode();
+    const widthPreset = getBoardColumnWidthPreset();
+    const grid = document.querySelector('.kanban-grid');
+    const tabNav = document.querySelector('.tab-nav');
+    const currentLabel = document.getElementById('boardLayoutCurrent');
+
+    document.documentElement.style.setProperty('--board-column-count', String(count));
+    document.documentElement.style.setProperty('--board-column-min-width', widthPreset.minWidth + 'px');
+
+    if (grid) {
+      grid.style.setProperty('--board-column-count', String(count));
+      grid.classList.toggle('board-layout-6', count === 6);
+      grid.dataset.layoutCount = String(count);
+    }
+
+    if (tabNav) tabNav.style.setProperty('--board-column-count', String(count));
+    if (currentLabel) currentLabel.textContent = count + '칸 · ' + widthPreset.label;
+
+    document.querySelectorAll('.board-layout-option').forEach(option => {
+      option.classList.toggle('active', Number(option.dataset.layoutCount) === count);
+    });
+
+    document.querySelectorAll('.board-width-option').forEach(option => {
+      option.classList.toggle('active', option.dataset.widthMode === widthMode);
+    });
+
+    /* 저장된 컬럼 순서와 실제 표시 순서를 일치시킵니다. */
+    columnOrder.forEach(status => {
+      const col = document.getElementById('col-' + status);
+      const tab = document.getElementById('tabbtn-' + status);
+
+      if (grid && col) grid.appendChild(col);
+      if (tabNav && tab) tabNav.appendChild(tab);
+    });
+
+    ALL_BOARD_STATUSES.forEach(status => {
+      const active = activeStatuses.includes(status);
+      const col = document.getElementById('col-' + status);
+      const tab = document.getElementById('tabbtn-' + status);
+
+      if (col) col.classList.toggle('board-column-hidden', !active);
+      if (tab) tab.classList.toggle('board-tab-hidden', !active);
+    });
+
+    installColumnDragHandles();
+
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (!activeTab || !activeStatuses.includes(activeTab.dataset.status)) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('active-col'));
+
+      const firstStatus = activeStatuses[0];
+      const firstTab = document.getElementById('tabbtn-' + firstStatus);
+      const firstCol = document.getElementById('col-' + firstStatus);
+
+      if (firstTab) firstTab.classList.add('active');
+      if (firstCol) firstCol.classList.add('active-col');
+    }
+}
+
+let draggedColumnStatus = null;
+
+function installColumnDragHandles() {
+    ALL_BOARD_STATUSES.forEach(status => {
+      const col = document.getElementById('col-' + status);
+      if (!col) return;
+
+      const header = col.querySelector('.col-header');
+      if (!header) return;
+
+      let grip = header.querySelector('.column-drag-grip');
+
+      if (!grip) {
+        grip = document.createElement('button');
+        grip.type = 'button';
+        grip.className = 'column-drag-grip';
+        grip.draggable = true;
+        grip.title = '마우스로 끌어서 컬럼 순서 변경';
+        grip.setAttribute('aria-label', '컬럼 드래그 순서 변경');
+        grip.innerHTML = '<span class="grip-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></span>';
+
+        const countBadge = header.querySelector('.col-count');
+        if (countBadge) header.insertBefore(grip, countBadge);
+        else header.appendChild(grip);
+
+        grip.addEventListener('dragstart', event => handleColumnDragStart(event, status));
+        grip.addEventListener('dragend', handleColumnDragEnd);
+      }
+
+      if (!col.dataset.columnDragBound) {
+        col.addEventListener('dragover', event => handleColumnDragOver(event, status));
+        col.addEventListener('dragleave', handleColumnDragLeave);
+        col.addEventListener('drop', event => handleColumnDrop(event, status));
+        col.dataset.columnDragBound = '1';
+      }
+    });
+}
+
+function handleColumnDragStart(event, status) {
+    draggedColumnStatus = status;
+    draggedId = null;
+
+    clearAttachmentDragClasses();
+    clearColumnDragIndicators();
+
+    const col = document.getElementById('col-' + status);
+    if (col) col.classList.add('column-dragging');
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', 'board-column:' + status);
+    }
+
+    event.stopPropagation();
+}
+
+function handleColumnDragOver(event, targetStatus) {
+    if (!draggedColumnStatus || draggedColumnStatus === targetStatus) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+
+    clearColumnDropIndicators();
+
+    const target = document.getElementById('col-' + targetStatus);
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    const insertAfter = event.clientX > rect.left + rect.width / 2;
+
+    target.classList.add(insertAfter ? 'column-drop-after' : 'column-drop-before');
+
+    /* 6칸 가로 스크롤에서 양끝으로 끌면 자동 스크롤 */
+    const grid = document.querySelector('.kanban-grid.board-layout-6');
+    if (grid) {
+      const gridRect = grid.getBoundingClientRect();
+      const edge = 72;
+
+      if (event.clientX < gridRect.left + edge) {
+        grid.scrollBy({ left: -24, behavior: 'auto' });
+      } else if (event.clientX > gridRect.right - edge) {
+        grid.scrollBy({ left: 24, behavior: 'auto' });
+      }
+    }
+}
+
+function handleColumnDragLeave(event) {
+    if (!draggedColumnStatus) return;
+
+    const col = event.currentTarget;
+    if (col && !col.contains(event.relatedTarget)) {
+      col.classList.remove('column-drop-before', 'column-drop-after');
+    }
+}
+
+async function handleColumnDrop(event, targetStatus) {
+    if (!draggedColumnStatus) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const sourceStatus = draggedColumnStatus;
+    const target = document.getElementById('col-' + targetStatus);
+    const rect = target ? target.getBoundingClientRect() : null;
+    const insertAfter = rect ? event.clientX > rect.left + rect.width / 2 : false;
+
+    clearColumnDragIndicators();
+    draggedColumnStatus = null;
+
+    if (!sourceStatus || sourceStatus === targetStatus) return;
+
+    const order = getBoardColumnOrder();
+    const sourceIndex = order.indexOf(sourceStatus);
+    let targetIndex = order.indexOf(targetStatus);
+
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    order.splice(sourceIndex, 1);
+    targetIndex = order.indexOf(targetStatus);
+
+    const insertIndex = targetIndex + (insertAfter ? 1 : 0);
+    order.splice(insertIndex, 0, sourceStatus);
+
+    boardMeta.columnOrder = order;
+    setStoredBoardMeta(boardMeta);
+    applyBoardColumnLayout();
+
+    if (cloudReady) {
+      if (cloudSaveTimer) {
+        clearTimeout(cloudSaveTimer);
+        cloudSaveTimer = null;
+      }
+      await saveCloudBoard();
+    }
+}
+
+function handleColumnDragEnd(event) {
+    draggedColumnStatus = null;
+    clearColumnDragIndicators();
+    if (event) event.stopPropagation();
+}
+
+function clearColumnDropIndicators() {
+    document.querySelectorAll('.kanban-col').forEach(col => {
+      col.classList.remove('column-drop-before', 'column-drop-after');
+    });
+}
+
+function clearColumnDragIndicators() {
+    document.querySelectorAll('.kanban-col').forEach(col => {
+      col.classList.remove('column-dragging', 'column-drop-before', 'column-drop-after');
+    });
+}
+function changeBoardColumnCount(value) {
+    const nextCount = Number(value);
+    if (![2, 4, 6].includes(nextCount)) return false;
+
+    const nextStatuses = BOARD_COLUMN_STATUS_MAP[nextCount];
+    const hiddenTasks = tasksData.filter(task => !nextStatuses.includes(task.status));
+
+    if (hiddenTasks.length > 0) {
+      alert(
+        nextCount + '칸으로 바꾸면 현재 업무 ' + hiddenTasks.length +
+        '건이 숨겨집니다.\n먼저 해당 업무를 남겨둘 칸으로 이동한 뒤 다시 변경하세요.'
+      );
+      applyBoardColumnLayout();
+      return false;
+    }
+
+    boardMeta.boardColumnCount = nextCount;
+    setStoredBoardMeta(boardMeta);
+    saveAll();
+    return true;
+}
+
+function openBoardLayoutSettings() {
+    applyBoardColumnLayout();
+    const modal = document.getElementById('boardLayoutModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeBoardLayoutSettings() {
+    const modal = document.getElementById('boardLayoutModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function selectBoardLayoutCount(count) {
+    if (changeBoardColumnCount(count)) {
+      closeBoardLayoutSettings();
+    }
+}
+
+function changeBoardColumnWidthMode(mode) {
+    const safeMode = Object.prototype.hasOwnProperty.call(BOARD_COLUMN_WIDTH_PRESETS, mode)
+      ? mode
+      : "default";
+
+    boardMeta.boardColumnWidthMode = safeMode;
+    setStoredBoardMeta(boardMeta);
+    applyBoardColumnLayout();
+    saveAll();
+    return true;
+}
+
+function selectBoardColumnWidth(mode) {
+    changeBoardColumnWidthMode(mode);
+}
+
+function ensureBoardColumnCountForTasks() {
+    let required = 2;
+    if (tasksData.some(task => task.status === 'doing3' || task.status === 'doing4')) {
+      required = 6;
+    } else if (tasksData.some(task => task.status === 'doing1' || task.status === 'doing2')) {
+      required = 4;
+    }
+
+    if (getBoardColumnCount() < required) {
+      boardMeta.boardColumnCount = required;
+      setStoredBoardMeta(boardMeta);
+    }
+}
+
+function applyCustomColumnIcon(container, iconValue, colorValue) {
+    if (!container) return;
+
+    let customIcon = container.querySelector('.custom-column-icon');
+    if (!customIcon) {
+      customIcon = document.createElement('span');
+      customIcon.className = 'custom-column-icon';
+      customIcon.setAttribute('aria-hidden', 'true');
+      container.insertBefore(customIcon, container.firstChild);
+    }
+
+    const icon = String(iconValue || '').trim().slice(0, 8);
+    customIcon.textContent = icon;
+    customIcon.style.color = colorValue || '';
+    container.classList.toggle('has-custom-column-icon', Boolean(icon));
 }
 
 function refreshThemeStatusUI() {
@@ -2350,6 +3163,8 @@ function refreshThemeStatusUI() {
         todo: "tabbtn-todo",
         doing1: "tabbtn-doing1",
         doing2: "tabbtn-doing2",
+        doing3: "tabbtn-doing3",
+        doing4: "tabbtn-doing4",
         done: "tabbtn-done"
     };
 
@@ -2357,6 +3172,8 @@ function refreshThemeStatusUI() {
         todo: "coltitle-todo",
         doing1: "coltitle-doing1",
         doing2: "coltitle-doing2",
+        doing3: "coltitle-doing3",
+        doing4: "coltitle-doing4",
         done: "coltitle-done"
     };
 
@@ -2371,6 +3188,7 @@ function refreshThemeStatusUI() {
                 label.style.color = setting.color;
                 label.style.fontSize = Math.max(12, setting.fontSize - 2) + "px";
             }
+            applyCustomColumnIcon(tab, setting.icon, setting.color);
         }
     });
 
@@ -2387,8 +3205,9 @@ function refreshThemeStatusUI() {
                 label.style.fontSize = setting.fontSize + "px";
             }
 
+            applyCustomColumnIcon(colTitle, setting.icon, setting.color);
             colTitle.classList.add("editable-title");
-            colTitle.title = "제목·글자 크기·색상 수정";
+            colTitle.title = "제목·글자 크기·색상·아이콘 수정";
             colTitle.onclick = function(event) {
                 event.stopPropagation();
                 openColumnSettings(status);
@@ -2404,7 +3223,7 @@ function refreshThemeStatusUI() {
 
 function applyEmptyColumnStates(counts) {
 
-    ["todo", "doing1", "doing2", "done"].forEach(status => {
+    ALL_BOARD_STATUSES.forEach(status => {
         const col = document.getElementById("col-" + status);
         if (!col) return;
 
@@ -2672,11 +3491,17 @@ function getTrackedAttachmentBytes() {
             ? boardMeta.referenceFiles
             : [];
 
-    referenceFiles.forEach(file => {
-        const size = Number(file.size);
-        if (Number.isFinite(size) && size > 0) {
-            total += size;
-        }
+    referenceFiles.forEach(item => {
+        const files = Array.isArray(item.files)
+            ? item.files
+            : (item.path ? [item] : []);
+
+        files.forEach(file => {
+            const size = Number(file.size);
+            if (Number.isFinite(size) && size > 0) {
+                total += size;
+            }
+        });
     });
 
     return total;
@@ -3271,14 +4096,60 @@ async function saveCloudBoard() {
         normalizedSettings[status] = {
           label: String(incoming.label || base.label).trim().slice(0, 30) || base.label,
           fontSize: Number.isFinite(size) ? Math.min(24, Math.max(12, Math.round(size))) : base.fontSize,
-          color: normalizeHexColor(incoming.color, base.color)
+          color: normalizeHexColor(incoming.color, base.color),
+          icon: String(incoming.icon || "").trim().slice(0, 8)
         };
       });
 
+      const boardColumnCount = [2, 4, 6].includes(Number(source.boardColumnCount))
+        ? Number(source.boardColumnCount)
+        : 4;
+
+      const boardColumnWidthMode = Object.prototype.hasOwnProperty.call(
+        BOARD_COLUMN_WIDTH_PRESETS,
+        String(source.boardColumnWidthMode || "default")
+      )
+        ? String(source.boardColumnWidthMode || "default")
+        : "default";
+
       const referenceFiles = Array.isArray(source.referenceFiles)
         ? source.referenceFiles
-            .filter(item => item && item.id && item.path)
-            .map(item => ({ ...item }))
+            .filter(item => item && item.id)
+            .map(item => {
+              const legacyFiles = item.path
+                ? [{
+                    name: item.name || item.title || '첨부파일',
+                    type: item.type || 'application/octet-stream',
+                    size: Number(item.size) || 0,
+                    path: item.path,
+                    sortOrder: 0
+                  }]
+                : [];
+
+              const rawFiles = Array.isArray(item.files) ? item.files : legacyFiles;
+              const files = rawFiles
+                .filter(file => file && file.path)
+                .map((file, fileIndex) => ({
+                  name: String(file.name || '첨부파일'),
+                  type: String(file.type || 'application/octet-stream'),
+                  size: Number(file.size) || 0,
+                  path: String(file.path),
+                  sortOrder: Number.isFinite(Number(file.sortOrder)) ? Number(file.sortOrder) : fileIndex
+                }))
+                .sort((a, b) => a.sortOrder - b.sortOrder);
+
+              files.forEach((file, fileIndex) => { file.sortOrder = fileIndex; });
+
+              return {
+                id: String(item.id),
+                title: String(item.title || item.name || '참고자료').slice(0, 80),
+                category: String(item.category || '기타').slice(0, 24),
+                memo: String(item.memo || '').slice(0, 500),
+                createdAt: item.createdAt || new Date().toISOString(),
+                sortOrder: item.sortOrder,
+                files: files
+              };
+            })
         : [];
 
       /*
@@ -3330,7 +4201,24 @@ async function saveCloudBoard() {
         normalizedCategories.push(...DEFAULT_REFERENCE_CATEGORIES);
       }
 
+      const sourceColumnOrder = Array.isArray(source.columnOrder)
+        ? source.columnOrder
+        : ALL_BOARD_STATUSES;
+
+      const columnOrder = [];
+      sourceColumnOrder.forEach(status => {
+        if (ALL_BOARD_STATUSES.includes(status) && !columnOrder.includes(status)) {
+          columnOrder.push(status);
+        }
+      });
+      ALL_BOARD_STATUSES.forEach(status => {
+        if (!columnOrder.includes(status)) columnOrder.push(status);
+      });
+
       return {
+        boardColumnCount: boardColumnCount,
+        boardColumnWidthMode: boardColumnWidthMode,
+        columnOrder: columnOrder,
         columnSettings: normalizedSettings,
         referenceCategories: normalizedCategories.slice(0, 30),
         referenceFiles: referenceFiles
@@ -3372,6 +4260,9 @@ async function saveCloudBoard() {
       return {
         id: BOARD_META_RECORD_ID,
         _type: "board_meta",
+        boardColumnCount: getBoardColumnCount(),
+        boardColumnWidthMode: getBoardColumnWidthMode(),
+        columnOrder: getBoardColumnOrder(),
         columnSettings: boardMeta.columnSettings,
         referenceCategories: boardMeta.referenceCategories,
         referenceFiles: boardMeta.referenceFiles
@@ -3673,7 +4564,7 @@ async function saveCloudBoard() {
     }
 
     /* ========================================================
-       3-1. 컬럼 제목 / 글자 크기 / 색상 설정
+       3-1. 컬럼 제목 / 글자 크기 / 색상 / 아이콘 설정
     ======================================================== */
     let currentEditingColumnStatus = null;
 
@@ -3682,11 +4573,13 @@ async function saveCloudBoard() {
       const sizeSelect = document.getElementById("columnFontSizeSelect");
       const colorInput = document.getElementById("columnColorInput");
       const colorValue = document.getElementById("columnColorValue");
+      const iconInput = document.getElementById("columnIconInput");
       const preview = document.getElementById("columnSettingPreview");
 
-      if (!input || !sizeSelect || !colorInput || !preview) return;
+      if (!input || !sizeSelect || !colorInput || !iconInput || !preview) return;
 
-      preview.innerText = input.value.trim() || "컬럼 제목";
+      const icon = iconInput.value.trim();
+      preview.innerText = (icon ? icon + "  " : "") + (input.value.trim() || "컬럼 제목");
       preview.style.fontSize = Number(sizeSelect.value || 16) + "px";
       preview.style.color = colorInput.value;
       preview.style.borderColor = colorInput.value;
@@ -3705,6 +4598,7 @@ async function saveCloudBoard() {
       document.getElementById("columnLabelInput").value = setting.label;
       document.getElementById("columnFontSizeSelect").value = String(setting.fontSize);
       document.getElementById("columnColorInput").value = setting.color;
+      document.getElementById("columnIconInput").value = setting.icon || "";
 
       updateColumnSettingPreview();
       document.getElementById("columnSettingsModal").style.display = "flex";
@@ -3731,11 +4625,13 @@ async function saveCloudBoard() {
         document.getElementById("columnColorInput").value,
         base.color
       );
+      const icon = String(document.getElementById("columnIconInput").value || "").trim().slice(0, 8);
 
       boardMeta.columnSettings[status] = {
         label: label,
         fontSize: Math.min(24, Math.max(12, Math.round(fontSize))),
-        color: color
+        color: color,
+        icon: icon
       };
 
       setStoredBoardMeta(boardMeta);
@@ -3775,6 +4671,7 @@ async function saveCloudBoard() {
     document.getElementById("columnLabelInput").addEventListener("input", updateColumnSettingPreview);
     document.getElementById("columnFontSizeSelect").addEventListener("change", updateColumnSettingPreview);
     document.getElementById("columnColorInput").addEventListener("input", updateColumnSettingPreview);
+    document.getElementById("columnIconInput").addEventListener("input", updateColumnSettingPreview);
 
     /* ========================================================
        3-2. 자료보관함
@@ -3880,6 +4777,188 @@ async function saveCloudBoard() {
       });
     }
 
+    function getReferenceItemFiles(item) {
+      if (!item) return [];
+      if (!Array.isArray(item.files)) item.files = [];
+      return item.files;
+    }
+
+    function reindexReferenceAttachments(item) {
+      getReferenceItemFiles(item).forEach((file, index) => {
+        file.sortOrder = index;
+      });
+    }
+
+    async function moveReferenceAttachment(referenceIndex, fileIndex, direction) {
+      const item = boardMeta.referenceFiles[referenceIndex];
+      if (!item) return;
+
+      const files = getReferenceItemFiles(item);
+      const targetIndex = fileIndex + Number(direction);
+      if (!files[fileIndex] || targetIndex < 0 || targetIndex >= files.length) return;
+
+      [files[fileIndex], files[targetIndex]] = [files[targetIndex], files[fileIndex]];
+      reindexReferenceAttachments(item);
+      await persistBoardMetaImmediately();
+      renderReferenceLibrary();
+    }
+
+    let draggedReferenceAttachment = null;
+
+    function handleReferenceAttachmentDragStart(event, referenceIndex, fileIndex) {
+      draggedReferenceAttachment = {
+        referenceIndex: Number(referenceIndex),
+        fileIndex: Number(fileIndex)
+      };
+
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', 'reference-attachment:' + referenceIndex + ':' + fileIndex);
+      }
+
+      const row = event.currentTarget.closest('.reference-file-row');
+      if (row) row.classList.add('attachment-dragging');
+
+      event.stopPropagation();
+    }
+
+    function handleReferenceAttachmentDragOver(event, referenceIndex) {
+      if (!draggedReferenceAttachment || draggedReferenceAttachment.referenceIndex !== Number(referenceIndex)) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+
+      const row = event.currentTarget;
+      clearAttachmentDropIndicators();
+
+      const rect = row.getBoundingClientRect();
+      const insertAfter = event.clientY > rect.top + rect.height / 2;
+
+      row.classList.add(insertAfter ? 'attachment-drop-after' : 'attachment-drop-before');
+    }
+
+    async function handleReferenceAttachmentDrop(event, referenceIndex, targetFileIndex) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const drag = draggedReferenceAttachment;
+      const row = event.currentTarget;
+      const rect = row ? row.getBoundingClientRect() : null;
+      const insertAfter = rect ? event.clientY > rect.top + rect.height / 2 : false;
+
+      clearAttachmentDragClasses();
+      draggedReferenceAttachment = null;
+
+      if (!drag || drag.referenceIndex !== Number(referenceIndex)) return;
+
+      const item = boardMeta.referenceFiles[Number(referenceIndex)];
+      if (!item) return;
+
+      const files = getReferenceItemFiles(item);
+      const sourceIdx = Number(drag.fileIndex);
+      let targetIdx = Number(targetFileIndex);
+
+      if (sourceIdx === targetIdx || !files[sourceIdx] || !files[targetIdx]) return;
+
+      const [movingFile] = files.splice(sourceIdx, 1);
+
+      if (sourceIdx < targetIdx) targetIdx -= 1;
+
+      const insertIndex = targetIdx + (insertAfter ? 1 : 0);
+      files.splice(insertIndex, 0, movingFile);
+
+      reindexReferenceAttachments(item);
+      await persistBoardMetaImmediately();
+      renderReferenceLibrary();
+    }
+    let currentTargetReferenceIndex = null;
+
+    function triggerReferenceFileUpload(referenceIndex) {
+      currentTargetReferenceIndex = referenceIndex;
+      const input = document.getElementById('referenceDirectFileInput');
+      if (!input) return;
+      input.value = '';
+      input.click();
+    }
+
+    async function handleReferenceFilesSelected(input) {
+      if (currentTargetReferenceIndex === null || !input.files || input.files.length === 0) return;
+      const referenceIndex = currentTargetReferenceIndex;
+      const files = Array.from(input.files);
+      currentTargetReferenceIndex = null;
+      input.value = '';
+      await attachReferenceFiles(referenceIndex, files);
+    }
+
+    async function uploadReferenceFiles(user, referenceId, files) {
+      const uploaded = [];
+      const failed = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileId = createStorageFileId();
+        const extension = getStorageFileExtension(file.name);
+        const storagePath = user.id + '/__reference__/' + referenceId + '/' + fileId + extension;
+
+        const { error: uploadError } = await sb.storage
+          .from('attachments')
+          .upload(storagePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: file.type || 'application/octet-stream'
+          });
+
+        if (uploadError) {
+          console.error('참고자료 파일 업로드 오류:', file.name, uploadError);
+          failed.push(file.name);
+          continue;
+        }
+
+        uploaded.push({
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          size: file.size,
+          path: storagePath,
+          sortOrder: uploaded.length
+        });
+      }
+
+      return { uploaded, failed };
+    }
+
+    async function attachReferenceFiles(referenceIndex, selectedFiles) {
+      const item = boardMeta.referenceFiles[referenceIndex];
+      const files = Array.from(selectedFiles || []);
+      if (!item || files.length === 0) return;
+
+      const { data: { user }, error: userError } = await sb.auth.getUser();
+      if (userError || !user) {
+        alert('로그인 정보를 확인할 수 없습니다.');
+        return;
+      }
+
+      setCloudSyncStatus('syncing', '☁ 참고자료 파일 업로드 중...');
+      const result = await uploadReferenceFiles(user, item.id, files);
+
+      if (result.uploaded.length === 0) {
+        alert('선택한 파일을 업로드하지 못했습니다.');
+        setCloudSyncStatus('error', '☁ 참고자료 업로드 실패');
+        return;
+      }
+
+      getReferenceItemFiles(item).push(...result.uploaded);
+      reindexReferenceAttachments(item);
+      await persistBoardMetaImmediately();
+      await refreshStorageUsage();
+      renderReferenceLibrary();
+
+      if (result.failed.length > 0) {
+        alert('일부 파일은 업로드되지 않았습니다.\n' + result.failed.join('\n'));
+      }
+    }
+
     function getFilteredReferenceItems() {
       const query = (document.getElementById("referenceSearchInput")?.value || "")
         .trim()
@@ -3896,7 +4975,7 @@ async function saveCloudBoard() {
             item.title,
             item.category,
             item.memo,
-            item.name
+            (Array.isArray(item.files) ? item.files.map(file => file.name).join(" ") : "")
           ].join(" ").toLowerCase();
 
           return haystack.includes(query);
@@ -4070,6 +5149,35 @@ async function saveCloudBoard() {
         const visiblePosition = items.findIndex(entry => entry.index === index);
         const canMoveUp = visiblePosition > 0;
         const canMoveDown = visiblePosition >= 0 && visiblePosition < items.length - 1;
+        const files = getReferenceItemFiles(item);
+        const totalSize = files.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+
+        const filesHtml = files.length > 0
+          ? files.map((file, fileIndex) => `
+              <div class="reference-file-row"
+                   ondragover="handleReferenceAttachmentDragOver(event, ${index})"
+                   ondragleave="handleAttachmentDragLeave(event)"
+                   ondrop="handleReferenceAttachmentDrop(event, ${index}, ${fileIndex})">
+                <span class="reference-file-drag-grip" draggable="true"
+                      ondragstart="handleReferenceAttachmentDragStart(event, ${index}, ${fileIndex})"
+                      ondragend="handleAttachmentDragEnd(event)"
+                      title="마우스로 끌어서 첨부파일 순서 변경" aria-label="첨부파일 드래그 순서 변경">⠿</span>
+                <button
+                  class="reference-file-trigger"
+                  type="button"
+                  onclick="openReferenceActionMenu(${index}, ${fileIndex})"
+                  title="첨부파일 보기·저장·삭제"
+                >
+                  <span aria-hidden="true">📎</span>
+                  <span class="reference-file-name">${escapeHtml(file.name || "첨부파일")}</span>
+                </button>
+                <div class="reference-file-order-actions" aria-label="첨부파일 순서 변경">
+                  <button class="reference-file-order-btn" type="button" onclick="moveReferenceAttachment(${index}, ${fileIndex}, -1)" ${fileIndex > 0 ? "" : "disabled"} title="첨부파일 위로 이동">↑</button>
+                  <button class="reference-file-order-btn" type="button" onclick="moveReferenceAttachment(${index}, ${fileIndex}, 1)" ${fileIndex < files.length - 1 ? "" : "disabled"} title="첨부파일 아래로 이동">↓</button>
+                </div>
+              </div>
+            `).join("")
+          : `<div class="reference-empty-files">등록된 첨부파일이 없습니다.</div>`;
 
         return `
           <div class="reference-item">
@@ -4077,36 +5185,19 @@ async function saveCloudBoard() {
               <div class="reference-item-head">
                 <div class="reference-title">${escapeHtml(item.title || "참고자료")}</div>
                 <div class="reference-order-actions" aria-label="자료 순서 변경">
-                  <button
-                    class="reference-order-btn"
-                    type="button"
-                    onclick="moveReferenceItem(${index}, -1)"
-                    title="한 칸 위로 이동"
-                    aria-label="${escapeHtml(item.title || "참고자료")} 위로 이동"
-                    ${canMoveUp ? "" : "disabled"}
-                  >↑</button>
-                  <button
-                    class="reference-order-btn"
-                    type="button"
-                    onclick="moveReferenceItem(${index}, 1)"
-                    title="한 칸 아래로 이동"
-                    aria-label="${escapeHtml(item.title || "참고자료")} 아래로 이동"
-                    ${canMoveDown ? "" : "disabled"}
-                  >↓</button>
+                  <button class="reference-order-btn" type="button" onclick="moveReferenceItem(${index}, -1)" title="자료 위로 이동" ${canMoveUp ? "" : "disabled"}>↑</button>
+                  <button class="reference-order-btn" type="button" onclick="moveReferenceItem(${index}, 1)" title="자료 아래로 이동" ${canMoveDown ? "" : "disabled"}>↓</button>
+                  <button class="reference-order-btn" type="button" onclick="deleteReferenceItem(${index})" title="자료 전체 삭제">✕</button>
                 </div>
               </div>
-              <button
-                class="reference-file-trigger"
-                type="button"
-                onclick="openReferenceActionMenu(${index})"
-                title="첨부파일 보기·저장·삭제"
-              >
-                <span aria-hidden="true">📎</span>
-                <span class="reference-file-name">첨부파일 · ${escapeHtml(item.name || "첨부파일")}</span>
-              </button>
+              <div class="reference-files-wrap">${filesHtml}</div>
+              <div class="reference-file-add-row">
+                <button class="btn-add-file" type="button" onclick="triggerReferenceFileUpload(${index})">➕ 파일 추가</button>
+              </div>
               <div class="reference-meta">
                 <span>🏷 ${escapeHtml(item.category || "기타")}</span>
-                <span>💾 ${formatStorageBytes(item.size || 0)}</span>
+                <span>📎 ${files.length}개</span>
+                <span>💾 ${formatStorageBytes(totalSize)}</span>
                 <span>🗓 ${escapeHtml(createdDate)}</span>
               </div>
               ${item.memo ? `<div class="reference-memo">${escapeHtml(item.memo)}</div>` : ""}
@@ -4326,13 +5417,13 @@ async function saveCloudBoard() {
       const fileInput = document.getElementById("referenceFileInput");
       const saveButton = document.getElementById("referenceSaveButton");
 
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) {
-        alert("보관할 파일을 선택하세요.");
+      const selectedFiles = Array.from((fileInput && fileInput.files) || []);
+      if (selectedFiles.length === 0) {
+        alert("보관할 파일을 1개 이상 선택하세요.");
         return;
       }
 
-      const title = titleInput.value.trim() || file.name;
+      const title = titleInput.value.trim() || selectedFiles[0].name;
       const category = categoryInput.value || getDefaultReferenceCategory();
       const memo = memoInput.value.trim();
 
@@ -4340,31 +5431,16 @@ async function saveCloudBoard() {
       saveButton.innerText = "업로드 중...";
 
       try {
-        const {
-          data: { user },
-          error: userError
-        } = await sb.auth.getUser();
-
-        if (userError || !user) {
-          throw userError || new Error("로그인 정보가 없습니다.");
-        }
+        const { data: { user }, error: userError } = await sb.auth.getUser();
+        if (userError || !user) throw userError || new Error("로그인 정보가 없습니다.");
 
         const referenceId = "ref_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
-        const fileId = createStorageFileId();
-        const extension = getStorageFileExtension(file.name);
-        const storagePath = user.id + "/__reference__/" + fileId + extension;
-
         setCloudSyncStatus("syncing", "☁ 참고자료 업로드 중...");
 
-        const { error: uploadError } = await sb.storage
-          .from("attachments")
-          .upload(storagePath, file, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: file.type || "application/octet-stream"
-          });
-
-        if (uploadError) throw uploadError;
+        const result = await uploadReferenceFiles(user, referenceId, selectedFiles);
+        if (result.uploaded.length === 0) {
+          throw new Error("선택한 파일을 업로드하지 못했습니다.");
+        }
 
         boardMeta.referenceFiles.unshift({
           id: referenceId,
@@ -4372,28 +5448,20 @@ async function saveCloudBoard() {
           category: category,
           memo: memo.slice(0, 500),
           createdAt: new Date().toISOString(),
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          path: storagePath,
+          files: result.uploaded,
           sortOrder: 0
         });
         reindexReferenceFiles();
         referenceCurrentPage = 1;
 
-        setStoredBoardMeta(boardMeta);
-
-        if (cloudReady) {
-          if (cloudSaveTimer) {
-            clearTimeout(cloudSaveTimer);
-            cloudSaveTimer = null;
-          }
-          await saveCloudBoard();
-        }
-
+        await persistBoardMetaImmediately();
         await refreshStorageUsage();
         toggleReferenceAddForm(false);
         renderReferenceLibrary();
+
+        if (result.failed.length > 0) {
+          alert("일부 파일은 업로드되지 않았습니다.\n" + result.failed.join("\n"));
+        }
 
       } catch (error) {
         console.error("참고자료 업로드 오류:", error);
@@ -4625,61 +5693,72 @@ async function saveCloudBoard() {
       }
     }
 
-    async function openReferenceFile(index) {
+    function getReferenceAttachment(index, fileIndex) {
       const item = boardMeta.referenceFiles[index];
-      if (!item || !item.path) return;
+      if (!item) return null;
+      const files = getReferenceItemFiles(item);
+      return files[fileIndex] || null;
+    }
 
-      /* 업무 첨부파일과 동일하게 iPad/iPhone의 PDF는 앱 선택 공유 시트로 전달 */
-      if (
-        isIOSLikeDevice() &&
-        isPdfFile(item.name || item.title, item.type)
-      ) {
+    async function openReferenceFile(index, fileIndex) {
+      const file = getReferenceAttachment(index, fileIndex);
+      if (!file || !file.path) return;
+
+      if (isIOSLikeDevice() && isPdfFile(file.name, file.type)) {
         const openedWithAppChooser = await openPdfWithIOSAppChooser(
-          item.path,
-          item.name || item.title || "문서.pdf",
-          item.type || "application/pdf",
-          "PDF"
+          file.path, file.name || "문서.pdf", file.type || "application/pdf", "PDF"
         );
+        if (openedWithAppChooser) return;
+      }
 
-        if (openedWithAppChooser) {
+      await openStorageFileInNewTab(file.path, file.name || "참고자료", "참고자료");
+    }
+
+    async function saveReferenceFile(index, fileIndex) {
+      const file = getReferenceAttachment(index, fileIndex);
+      if (!file || !file.path) return;
+
+      await saveStorageFileToDevice(
+        file.path, file.name || "참고자료", file.type || "application/octet-stream", "참고자료"
+      );
+    }
+
+    async function deleteReferenceAttachment(index, fileIndex) {
+      const item = boardMeta.referenceFiles[index];
+      const file = getReferenceAttachment(index, fileIndex);
+      if (!item || !file) return;
+
+      if (!confirm("이 첨부파일을 삭제하시겠습니까?\n" + (file.name || "첨부파일"))) return;
+
+      setCloudSyncStatus("syncing", "☁ 참고자료 파일 삭제 중...");
+      if (file.path) {
+        const { error } = await sb.storage.from("attachments").remove([file.path]);
+        if (error) {
+          console.error("참고자료 첨부파일 삭제 오류:", error);
+          alert("첨부파일 삭제에 실패했습니다.");
+          setCloudSyncStatus("error", "☁ 참고자료 파일 삭제 실패");
           return;
         }
       }
 
-      await openStorageFileInNewTab(
-        item.path,
-        item.name || item.title || "참고자료",
-        "참고자료"
-      );
-    }
-
-    async function saveReferenceFile(index) {
-      const item = boardMeta.referenceFiles[index];
-      if (!item || !item.path) return;
-
-      await saveStorageFileToDevice(
-        item.path,
-        item.name || item.title || "참고자료",
-        item.type || "application/octet-stream",
-        "참고자료"
-      );
+      getReferenceItemFiles(item).splice(fileIndex, 1);
+      reindexReferenceAttachments(item);
+      await persistBoardMetaImmediately();
+      await refreshStorageUsage();
+      renderReferenceLibrary();
     }
 
     async function deleteReferenceItem(index) {
       const item = boardMeta.referenceFiles[index];
       if (!item) return;
 
-      if (!confirm("이 참고자료를 삭제하시겠습니까?\n" + (item.title || item.name || "참고자료"))) {
-        return;
-      }
+      if (!confirm("이 참고자료 전체를 삭제하시겠습니까?\n" + (item.title || "참고자료"))) return;
 
       setCloudSyncStatus("syncing", "☁ 참고자료 삭제 중...");
+      const paths = getReferenceItemFiles(item).map(file => file.path).filter(Boolean);
 
-      if (item.path) {
-        const { error } = await sb.storage
-          .from("attachments")
-          .remove([item.path]);
-
+      if (paths.length > 0) {
+        const { error } = await sb.storage.from("attachments").remove(paths);
         if (error) {
           console.error("참고자료 Storage 삭제 오류:", error);
           alert("참고자료 파일 삭제에 실패했습니다.");
@@ -4690,16 +5769,7 @@ async function saveCloudBoard() {
 
       boardMeta.referenceFiles.splice(index, 1);
       reindexReferenceFiles();
-      setStoredBoardMeta(boardMeta);
-
-      if (cloudReady) {
-        if (cloudSaveTimer) {
-          clearTimeout(cloudSaveTimer);
-          cloudSaveTimer = null;
-        }
-        await saveCloudBoard();
-      }
-
+      await persistBoardMetaImmediately();
       await refreshStorageUsage();
       renderReferenceLibrary();
     }
@@ -4726,28 +5796,60 @@ async function saveCloudBoard() {
     /* ========================================================
        5. 렌더링 엔진
     ======================================================== */
+    function renderTaskAttachmentItems(taskId, files, emptyText) {
+      if (!files || files.length === 0) {
+        return `<span style="font-size:.73rem;color:var(--text-sub);">${escapeHtml(emptyText || '등록된 붙임파일이 없습니다.')}</span>`;
+      }
+
+      return files.map((file, idx) => `
+        <div class="att-item"
+             ondragover="handleTaskAttachmentDragOver(event, '${taskId}')"
+             ondragleave="handleAttachmentDragLeave(event)"
+             ondrop="handleTaskAttachmentDrop(event, '${taskId}', ${idx})">
+          <span class="attachment-drag-grip" draggable="true"
+                ondragstart="handleTaskAttachmentDragStart(event, '${taskId}', ${idx})"
+                ondragend="handleAttachmentDragEnd(event)"
+                title="마우스로 끌어서 붙임파일 순서 변경" aria-label="붙임파일 드래그 순서 변경">⠿</span>
+          <button class="att-pill att-file-trigger" type="button"
+                  onclick="openAttachmentActionMenu('${taskId}', ${idx})"
+                  title="클릭하여 보기·저장·삭제 선택">
+            <span aria-hidden="true">📎</span>
+            <span class="att-name">${escapeHtml(file.name || '첨부파일')}</span>
+          </button>
+          <div class="attachment-order-controls" aria-label="붙임파일 순서 변경">
+            <button class="attachment-order-btn" type="button"
+                    onclick="moveTaskAttachment('${taskId}', ${idx}, -1)"
+                    ${idx > 0 ? '' : 'disabled'} title="붙임파일 위로 이동">↑</button>
+            <button class="attachment-order-btn" type="button"
+                    onclick="moveTaskAttachment('${taskId}', ${idx}, 1)"
+                    ${idx < files.length - 1 ? '' : 'disabled'} title="붙임파일 아래로 이동">↓</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
     function renderBoard() {
-      const lists = {
-        todo: document.getElementById('list-todo'),
-        doing1: document.getElementById('list-doing1'),
-        doing2: document.getElementById('list-doing2'),
-        done: document.getElementById('list-done')
-      };
+      const lists = {};
+      const counts = {};
+      const statusTaskIds = {};
 
-      lists.todo.innerHTML = "";
-      lists.doing1.innerHTML = "";
-      lists.doing2.innerHTML = "";
-      lists.done.innerHTML = "";
-
-      const counts = { todo: 0, doing1: 0, doing2: 0, done: 0 };
-
-      // 기존 데이터 상태값을 먼저 정규화하고 각 컬럼의 현재 순서를 계산
-      tasksData.forEach(task => {
-        if (task.status === 'doing') task.status = 'doing1';
-        if (!lists[task.status]) task.status = 'todo';
+      ALL_BOARD_STATUSES.forEach(status => {
+        lists[status] = document.getElementById('list-' + status);
+        counts[status] = 0;
+        statusTaskIds[status] = [];
+        if (lists[status]) lists[status].innerHTML = '';
       });
 
-      const statusTaskIds = { todo: [], doing1: [], doing2: [], done: [] };
+      // 구버전 상태값과 비정상 상태값 정규화
+      tasksData.forEach(task => {
+        if (task.status === 'doing') task.status = 'doing1';
+        if (!ALL_BOARD_STATUSES.includes(task.status)) task.status = 'todo';
+        if (!Array.isArray(task.files)) task.files = [];
+      });
+
+      // 숨겨진 칸에 업무가 있는 상태로 구버전 데이터가 들어오면 자동으로 필요한 칸 수까지 확장
+      ensureBoardColumnCountForTasks();
+
       tasksData.forEach(task => statusTaskIds[task.status].push(task.id));
 
       tasksData.forEach(task => {
@@ -4762,15 +5864,17 @@ async function saveCloudBoard() {
         const card = document.createElement('div');
         card.className = `task-card ${isDone ? 'done-compact' : ''}`;
         card.id = task.id;
-
-        // 카드 자체 드래그는 끄고 6점 그립 핸들만 드래그 가능하게 하여
-        // 기존 '카드에 파일 드롭' 기능과 업무 순서 드래그를 충돌 없이 구분
         card.draggable = false;
-        card.ondragover = (e) => { e.preventDefault(); card.classList.add('dragover-card'); };
+        card.ondragover = (e) => {
+          if (draggedColumnStatus) return;
+          e.preventDefault();
+          card.classList.add('dragover-card');
+        };
         card.ondragleave = () => card.classList.remove('dragover-card');
         card.ondrop = (e) => handleCardDrop(e, task.id);
 
-        const files = task.files || [];
+        const files = task.files;
+        const statusOptions = buildStatusOptionsHtml(task.status);
 
         if (isDone) {
           const doneFilesHtml = `
@@ -4782,14 +5886,7 @@ async function saveCloudBoard() {
                   <button class="btn-add-file" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
                 </div>
                 <div class="att-list">
-                  ${files.length > 0 ? files.map((file, idx) => `
-                    <button class="att-pill att-file-trigger" type="button"
-                            onclick="openAttachmentActionMenu('${task.id}', ${idx})"
-                            title="클릭하여 보기·저장·삭제 선택">
-                      <span aria-hidden="true">📎</span>
-                      <span class="att-name">${escapeHtml(file.name || '첨부파일')}</span>
-                    </button>
-                  `).join('') : `<span style="font-size:.73rem;color:var(--text-sub);">등록된 붙임파일이 없습니다.</span>`}
+                  ${renderTaskAttachmentItems(task.id, files, '등록된 붙임파일이 없습니다.')}
                 </div>
               </div>
             </details>
@@ -4800,17 +5897,12 @@ async function saveCloudBoard() {
               <span class="d-day-badge done-badge">✓ 완료됨</span>
               <span class="done-date">${task.dueDate || ''}</span>
             </div>
-            <div class="card-title" contenteditable="true" 
-                 onblur="updateTaskTitle('${task.id}', this.innerText)" 
-                 onkeydown="handleTitleKeydown(event, this)">${task.title}</div>
+            <div class="card-title" contenteditable="true"
+                 onblur="updateTaskTitle('${task.id}', this.innerText)"
+                 onkeydown="handleTitleKeydown(event, this)">${escapeHtml(task.title || '')}</div>
             ${doneFilesHtml}
             <div class="card-footer">
-              <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">
-                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>${getStatusOptionLabel('todo')}</option>
-                <option value="doing1" ${task.status === 'doing1' ? 'selected' : ''}>${getStatusOptionLabel('doing1')}</option>
-                <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>${getStatusOptionLabel('doing2')}</option>
-                <option value="done" ${task.status === 'done' ? 'selected' : ''}>${getStatusOptionLabel('done')}</option>
-              </select>
+              <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">${statusOptions}</select>
               <div class="order-controls">
                 <button class="btn-order" type="button" title="한 칸 위로" ${canMoveUp ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', -1)">▲</button>
                 <button class="btn-order" type="button" title="한 칸 아래로" ${canMoveDown ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', 1)">▼</button>
@@ -4822,14 +5914,14 @@ async function saveCloudBoard() {
         } else {
           const subtasks = task.subtasks || [];
 
-          let subtasksHtml = `
+          const subtasksHtml = `
             <div class="subtasks-container">
               ${subtasks.map((st, idx) => `
                 <div class="subtask-row ${st.done ? 'completed' : ''}">
                   <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubtask('${task.id}', ${idx})">
-                  <div class="subtask-text" contenteditable="true" 
+                  <div class="subtask-text" contenteditable="true"
                        onblur="updateSubtaskText('${task.id}', ${idx}, this.innerText)"
-                       onkeydown="handleTitleKeydown(event, this)">${st.text}</div>
+                       onkeydown="handleTitleKeydown(event, this)">${escapeHtml(st.text || '')}</div>
                   <button class="btn-subtask-del" onclick="deleteSubtask('${task.id}', ${idx})">✕</button>
                 </div>
               `).join('')}
@@ -4837,21 +5929,14 @@ async function saveCloudBoard() {
             </div>
           `;
 
-          let filesHtml = `
+          const filesHtml = `
             <div class="attachments-section">
               <div class="att-top">
                 <span class="att-header">📎 붙임파일 (${files.length})</span>
                 <button class="btn-add-file" onclick="triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
               </div>
               <div class="att-list">
-                ${files.map((file, idx) => `
-                  <button class="att-pill att-file-trigger" type="button"
-                          onclick="openAttachmentActionMenu('${task.id}', ${idx})"
-                          title="클릭하여 보기·저장·삭제 선택">
-                    <span aria-hidden="true">📎</span>
-                    <span class="att-name">${escapeHtml(file.name || '첨부파일')}</span>
-                  </button>
-                `).join('')}
+                ${renderTaskAttachmentItems(task.id, files, '등록된 붙임파일이 없습니다.')}
               </div>
             </div>
           `;
@@ -4865,18 +5950,13 @@ async function saveCloudBoard() {
                 <input type="date" class="inline-date-input" value="${task.dueDate || ''}" onchange="updateTaskDate('${task.id}', 'dueDate', this.value)">
               </div>
             </div>
-            <div class="card-title" contenteditable="true" 
-                 onblur="updateTaskTitle('${task.id}', this.innerText)" 
-                 onkeydown="handleTitleKeydown(event, this)">${task.title}</div>
+            <div class="card-title" contenteditable="true"
+                 onblur="updateTaskTitle('${task.id}', this.innerText)"
+                 onkeydown="handleTitleKeydown(event, this)">${escapeHtml(task.title || '')}</div>
             ${subtasksHtml}
             ${filesHtml}
             <div class="card-footer">
-              <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">
-                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>${getStatusOptionLabel('todo')}</option>
-                <option value="doing1" ${task.status === 'doing1' ? 'selected' : ''}>${getStatusOptionLabel('doing1')}</option>
-                <option value="doing2" ${task.status === 'doing2' ? 'selected' : ''}>${getStatusOptionLabel('doing2')}</option>
-                <option value="done" ${task.status === 'done' ? 'selected' : ''}>${getStatusOptionLabel('done')}</option>
-              </select>
+              <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">${statusOptions}</select>
               <div class="order-controls">
                 <button class="btn-order" type="button" title="한 칸 위로" ${canMoveUp ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', -1)">▲</button>
                 <button class="btn-order" type="button" title="한 칸 아래로" ${canMoveDown ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', 1)">▼</button>
@@ -4887,21 +5967,139 @@ async function saveCloudBoard() {
           `;
         }
 
-        lists[task.status].appendChild(card);
+        if (lists[task.status]) lists[task.status].appendChild(card);
       });
 
-      document.getElementById('count-todo').innerText = counts.todo;
-      document.getElementById('count-doing1').innerText = counts.doing1;
-      document.getElementById('count-doing2').innerText = counts.doing2;
-      document.getElementById('count-done').innerText = counts.done;
-
-      document.getElementById('tab-count-todo').innerText = counts.todo;
-      document.getElementById('tab-count-doing1').innerText = counts.doing1;
-      document.getElementById('tab-count-doing2').innerText = counts.doing2;
-      document.getElementById('tab-count-done').innerText = counts.done;
+      ALL_BOARD_STATUSES.forEach(status => {
+        const countBadge = document.getElementById('count-' + status);
+        if (countBadge) countBadge.textContent = String(counts[status] || 0);
+      });
 
       refreshThemeStatusUI();
+      applyBoardColumnLayout();
       applyEmptyColumnStates(counts);
+    }
+
+    let draggedTaskAttachment = null;
+
+    function handleTaskAttachmentDragStart(event, taskId, fileIdx) {
+      draggedTaskAttachment = {
+        taskId: taskId,
+        fileIdx: Number(fileIdx)
+      };
+
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', 'task-attachment:' + taskId + ':' + fileIdx);
+      }
+
+      const row = event.currentTarget.closest('.att-item');
+      if (row) row.classList.add('attachment-dragging');
+
+      event.stopPropagation();
+    }
+
+    function handleTaskAttachmentDragOver(event, taskId) {
+      if (!draggedTaskAttachment || draggedTaskAttachment.taskId !== taskId) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+
+      const row = event.currentTarget;
+      clearAttachmentDropIndicators();
+
+      const rect = row.getBoundingClientRect();
+      const insertAfter = event.clientX > rect.left + rect.width / 2;
+
+      row.classList.add(insertAfter ? 'attachment-drop-after' : 'attachment-drop-before');
+    }
+
+    async function handleTaskAttachmentDrop(event, taskId, targetIdx) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const drag = draggedTaskAttachment;
+      const row = event.currentTarget;
+      const rect = row ? row.getBoundingClientRect() : null;
+      const insertAfter = rect ? event.clientX > rect.left + rect.width / 2 : false;
+
+      clearAttachmentDragClasses();
+      draggedTaskAttachment = null;
+
+      if (!drag || drag.taskId !== taskId) return;
+
+      const task = tasksData.find(t => t.id === taskId);
+      if (!task || !Array.isArray(task.files)) return;
+
+      const sourceIdx = Number(drag.fileIdx);
+      let targetIndex = Number(targetIdx);
+
+      if (sourceIdx === targetIndex || !task.files[sourceIdx] || !task.files[targetIndex]) return;
+
+      const [movingFile] = task.files.splice(sourceIdx, 1);
+
+      if (sourceIdx < targetIndex) targetIndex -= 1;
+
+      const insertIndex = targetIndex + (insertAfter ? 1 : 0);
+      task.files.splice(insertIndex, 0, movingFile);
+
+      saveAll();
+
+      if (cloudReady) {
+        if (cloudSaveTimer) {
+          clearTimeout(cloudSaveTimer);
+          cloudSaveTimer = null;
+        }
+        await saveCloudBoard();
+      }
+    }
+
+    function handleAttachmentDragLeave(event) {
+      if (!event.currentTarget) return;
+
+      if (!event.currentTarget.contains(event.relatedTarget)) {
+        event.currentTarget.classList.remove('attachment-drop-before', 'attachment-drop-after');
+      }
+    }
+
+    function clearAttachmentDropIndicators() {
+      document.querySelectorAll('.attachment-drop-before, .attachment-drop-after').forEach(el => {
+        el.classList.remove('attachment-drop-before', 'attachment-drop-after');
+      });
+    }
+
+    function clearAttachmentDragClasses() {
+      document.querySelectorAll('.attachment-dragging, .attachment-drop-before, .attachment-drop-after').forEach(el => {
+        el.classList.remove('attachment-dragging', 'attachment-drop-before', 'attachment-drop-after');
+      });
+    }
+
+    function handleAttachmentDragEnd(event) {
+      draggedTaskAttachment = null;
+      draggedReferenceAttachment = null;
+      clearAttachmentDragClasses();
+
+      if (event) event.stopPropagation();
+    }
+    async function moveTaskAttachment(taskId, fileIdx, direction) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (!task || !Array.isArray(task.files)) return;
+
+      const targetIdx = fileIdx + Number(direction);
+      if (!task.files[fileIdx] || targetIdx < 0 || targetIdx >= task.files.length) return;
+
+      [task.files[fileIdx], task.files[targetIdx]] = [task.files[targetIdx], task.files[fileIdx]];
+      saveAll();
+
+      if (cloudReady) {
+        if (cloudSaveTimer) {
+          clearTimeout(cloudSaveTimer);
+          cloudSaveTimer = null;
+        }
+        await saveCloudBoard();
+      }
     }
 
     /* ========================================================
@@ -5044,6 +6242,11 @@ async function handleDirectFileSelected(input) {
 
 /* 카드 드롭 처리: 첨부파일 드롭과 업무 순서 드롭을 구분 */
 function handleCardDrop(e, targetTaskId) {
+
+    /* 컬럼 자체를 드래그 중이면 카드가 drop 이벤트를 가로채지 않도록 컬럼으로 전달 */
+    if (draggedColumnStatus) {
+        return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
@@ -5384,19 +6587,20 @@ function openAttachmentActionMenu(taskId, fileIdx) {
     });
 }
 
-function openReferenceActionMenu(index) {
-    const item = boardMeta.referenceFiles[index];
-    if (!item) return;
+function openReferenceActionMenu(index, fileIdx) {
+    const file = getReferenceAttachment(index, fileIdx);
+    if (!file) return;
 
     currentAttachmentAction = {
         source: "reference",
-        index: index
+        index: index,
+        fileIdx: fileIdx
     };
 
-    showFileActionMenu(item, {
-        title: "📚 자료보관함",
+    showFileActionMenu(file, {
+        title: "📚 자료보관함 첨부파일",
         fallbackName: "참고자료",
-        deleteLabel: "🗑 자료 삭제"
+        deleteLabel: "🗑 첨부파일 삭제"
     });
 }
 
@@ -5420,17 +6624,17 @@ async function runAttachmentAction(action) {
 
     if (target.source === "reference") {
         if (action === "open") {
-            await openReferenceFile(target.index);
+            await openReferenceFile(target.index, target.fileIdx);
             return;
         }
 
         if (action === "save") {
-            await saveReferenceFile(target.index);
+            await saveReferenceFile(target.index, target.fileIdx);
             return;
         }
 
         if (action === "delete") {
-            await deleteReferenceItem(target.index);
+            await deleteReferenceAttachment(target.index, target.fileIdx);
         }
 
         return;
@@ -5670,6 +6874,8 @@ async function deleteAttachment(
     }
 
     function allowDrop(e) {
+      if (draggedColumnStatus) return;
+
       e.preventDefault();
       if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     }
@@ -5719,6 +6925,8 @@ async function deleteAttachment(
     }
 
     function handleDrop(e, targetStatus) {
+      if (draggedColumnStatus) return;
+
       e.preventDefault();
 
       if (draggedId) {
@@ -5731,6 +6939,7 @@ async function deleteAttachment(
       if (event.key !== "Escape") return;
 
       const columnModal = document.getElementById("columnSettingsModal");
+      const layoutModal = document.getElementById("boardLayoutModal");
       const referenceModal = document.getElementById("referenceModal");
       const attachmentActionModal = document.getElementById("attachmentActionModal");
 
@@ -5742,6 +6951,11 @@ async function deleteAttachment(
 
       if (columnModal && columnModal.style.display === "flex") {
         closeColumnSettings();
+        return;
+      }
+
+      if (layoutModal && layoutModal.style.display === "flex") {
+        closeBoardLayoutSettings();
         return;
       }
 
