@@ -1671,6 +1671,61 @@ body.theme-soul .btn-layout-settings {
   }
 
   /* ========================================================
+     모든 업무카드 세부업무 접기/펼치기
+     - 해야할 업무 / 진행Ⅰ~Ⅳ / 완료 업무 공통 적용
+  ======================================================== */
+  .task-subtasks {
+    border-top: 1px dashed var(--divider-color);
+    padding-top: 7px;
+  }
+
+  .task-subtasks summary {
+    list-style: none;
+    cursor: pointer;
+    color: var(--text-main);
+    font-size: 0.78rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 30px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  .task-subtasks summary::-webkit-details-marker { display: none; }
+
+  .task-subtasks summary::after {
+    content: "▾";
+    color: var(--text-sub);
+    transition: transform 0.15s ease;
+    flex: 0 0 auto;
+  }
+
+  .task-subtasks[open] summary::after {
+    transform: rotate(180deg);
+  }
+
+  .task-subtasks .subtasks-container {
+    margin-top: 8px;
+  }
+
+  body.theme-soul .task-subtasks summary {
+    color: #d5e4ee;
+  }
+
+  /* iPad/터치 환경에서는 세부업무 접기·펼치기 영역을 크게 표시 */
+  @media (hover: none) and (pointer: coarse) {
+    .task-subtasks summary {
+      min-height: 40px;
+      padding: 4px 2px;
+      font-size: 0.84rem;
+    }
+  }
+
+  /* ========================================================
      모든 업무카드 붙임파일 접기/펼치기
      - 해야할 업무 / 진행Ⅰ~Ⅳ / 완료 업무 공통 적용
   ======================================================== */
@@ -4839,6 +4894,10 @@ async function saveCloudBoard() {
       }
     ];
 
+    // 세부업무 접기/펼치기 상태는 화면 갱신 중에도 유지합니다.
+    // 클라우드/업무 데이터에는 저장하지 않는 UI 전용 상태입니다.
+    const openSubtaskTaskIds = new Set();
+
  function saveAll() {
 
     try {
@@ -6648,50 +6707,14 @@ async function saveCloudBoard() {
         card.ondrop = (e) => handleCardDrop(e, task.id);
 
         const files = task.files;
+        const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+        const completedSubtasks = subtasks.filter(st => st && st.done).length;
         const statusOptions = buildStatusOptionsHtml(task.status);
 
-        if (isDone) {
-          const doneFilesHtml = `
-            <details class="task-attachments">
-              <summary>📎 붙임파일 ${files.length}개</summary>
-              <div class="attachments-section"
-                   ondragover="handleTaskFileDragOver(event, '${task.id}')"
-                   ondragleave="handleTaskFileDragLeave(event)"
-                   ondrop="handleTaskFileDrop(event, '${task.id}')">
-                <div class="att-top">
-                  <span class="att-header">완료 업무 첨부자료</span>
-                  <button class="btn-add-file" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
-                </div>
-                <div class="att-list">
-                  ${renderTaskAttachmentItems(task.id, files, '등록된 붙임파일이 없습니다.')}
-                </div>
-              </div>
-            </details>
-          `;
-
-          card.innerHTML = `
-            <div class="card-top">
-              <span class="d-day-badge done-badge">✓ 완료됨</span>
-              <span class="done-date">${task.dueDate || ''}</span>
-            </div>
-            <div class="card-title" contenteditable="true"
-                 onblur="updateTaskTitle('${task.id}', this.innerText)"
-                 onkeydown="handleTitleKeydown(event, this)">${escapeHtml(task.title || '')}</div>
-            ${doneFilesHtml}
-            <div class="card-footer">
-              <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">${statusOptions}</select>
-              <div class="order-controls">
-                <button class="btn-order" type="button" title="한 칸 위로" ${canMoveUp ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', -1)">▲</button>
-                <button class="btn-order" type="button" title="한 칸 아래로" ${canMoveDown ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', 1)">▼</button>
-                <button class="drag-handle" type="button" title="PC: 드래그하여 순서 변경" aria-label="드래그하여 업무 순서 변경" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)"><span class="grip-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></span></button>
-                <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
-              </div>
-            </div>
-          `;
-        } else {
-          const subtasks = task.subtasks || [];
-
-          const subtasksHtml = `
+        const subtasksHtml = `
+          <details class="task-subtasks" ${openSubtaskTaskIds.has(task.id) ? 'open' : ''}
+                   ontoggle="rememberTaskSubtasksOpen('${task.id}', this.open)">
+            <summary>☑ 세부업무 ${subtasks.length}개${subtasks.length ? ` · 완료 ${completedSubtasks}/${subtasks.length}` : ''}</summary>
             <div class="subtasks-container">
               ${subtasks.map((st, idx) => `
                 <div class="subtask-row ${st.done ? 'completed' : ''}">
@@ -6704,26 +6727,49 @@ async function saveCloudBoard() {
               `).join('')}
               <button class="btn-add-subtask" onclick="addSubtaskItem('${task.id}')">➕ 세부 업무 추가</button>
             </div>
-          `;
+          </details>
+        `;
 
-          const filesHtml = `
-            <details class="task-attachments">
-              <summary>📎 붙임파일 ${files.length}개</summary>
-              <div class="attachments-section"
-                   ondragover="handleTaskFileDragOver(event, '${task.id}')"
-                   ondragleave="handleTaskFileDragLeave(event)"
-                   ondrop="handleTaskFileDrop(event, '${task.id}')">
-                <div class="att-top">
-                  <span class="att-header">붙임파일</span>
-                  <button class="btn-add-file" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
-                </div>
-                <div class="att-list">
-                  ${renderTaskAttachmentItems(task.id, files, '등록된 붙임파일이 없습니다.')}
-                </div>
+        const filesHtml = `
+          <details class="task-attachments">
+            <summary>📎 붙임파일 ${files.length}개</summary>
+            <div class="attachments-section"
+                 ondragover="handleTaskFileDragOver(event, '${task.id}')"
+                 ondragleave="handleTaskFileDragLeave(event)"
+                 ondrop="handleTaskFileDrop(event, '${task.id}')">
+              <div class="att-top">
+                <span class="att-header">${isDone ? '완료 업무 첨부자료' : '붙임파일'}</span>
+                <button class="btn-add-file" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
               </div>
-            </details>
-          `;
+              <div class="att-list">
+                ${renderTaskAttachmentItems(task.id, files, '등록된 붙임파일이 없습니다.')}
+              </div>
+            </div>
+          </details>
+        `;
 
+        if (isDone) {
+          card.innerHTML = `
+            <div class="card-top">
+              <span class="d-day-badge done-badge">✓ 완료됨</span>
+              <span class="done-date">${task.dueDate || ''}</span>
+            </div>
+            <div class="card-title" contenteditable="true"
+                 onblur="updateTaskTitle('${task.id}', this.innerText)"
+                 onkeydown="handleTitleKeydown(event, this)">${escapeHtml(task.title || '')}</div>
+            ${subtasksHtml}
+            ${filesHtml}
+            <div class="card-footer">
+              <select class="move-select" onchange="changeTaskStatus('${task.id}', this.value)">${statusOptions}</select>
+              <div class="order-controls">
+                <button class="btn-order" type="button" title="한 칸 위로" ${canMoveUp ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', -1)">▲</button>
+                <button class="btn-order" type="button" title="한 칸 아래로" ${canMoveDown ? '' : 'disabled'} onclick="moveTaskWithinStatus('${task.id}', 1)">▼</button>
+                <button class="drag-handle" type="button" title="PC: 드래그하여 순서 변경" aria-label="드래그하여 업무 순서 변경" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)"><span class="grip-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></span></button>
+                <button class="btn-del-card" onclick="removeTask('${task.id}')">삭제</button>
+              </div>
+            </div>
+          `;
+        } else {
           card.innerHTML = `
             <div class="card-top">
               <span class="d-day-badge ${dDay.className}">⏳ ${dDay.text}</span>
@@ -6834,11 +6880,18 @@ async function saveCloudBoard() {
       }
     }
 
+    function rememberTaskSubtasksOpen(taskId, isOpen) {
+      if (isOpen) openSubtaskTaskIds.add(taskId);
+      else openSubtaskTaskIds.delete(taskId);
+    }
+
     function addSubtaskItem(taskId) {
       const task = tasksData.find(t => t.id === taskId);
       if (task) {
         if (!task.subtasks) task.subtasks = [];
         task.subtasks.push({ text: "새 세부 업무 입력", done: false });
+        // 추가 직후에도 세부업무 영역이 접히지 않도록 유지
+        openSubtaskTaskIds.add(taskId);
         saveAll();
       }
     }
@@ -6862,6 +6915,7 @@ async function saveCloudBoard() {
     function removeTask(id) {
       if (confirm('이 업무 항목을 삭제하시겠습니까?')) {
         tasksData = tasksData.filter(t => t.id !== id);
+        openSubtaskTaskIds.delete(id);
         saveAll();
       }
     }
