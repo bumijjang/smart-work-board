@@ -1306,32 +1306,6 @@ body.theme-soul .btn-layout-settings {
   }
   .attachment-order-btn:disabled { opacity: .28; cursor: default; }
   .attachment-order-btn:active:not(:disabled) { background: var(--surface-3); color: var(--text-main); }
-  .attachment-drag-grip {
-    width: 25px; height: 25px; display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 5px; border: 1px dashed var(--pill-border); background: transparent; color: var(--text-sub);
-    cursor: grab; user-select: none; -webkit-user-select: none; flex: 0 0 auto;
-    font-size: .82rem; line-height: 1;
-  }
-  .attachment-drag-grip:active { cursor: grabbing; background: var(--surface-3); color: var(--text-main); }
-  .att-item { position: relative; }
-  .att-item.attachment-dragging { opacity: .45; }
-
-  .att-item.attachment-drop-before::before,
-  .att-item.attachment-drop-after::after {
-    content: "";
-    position: absolute;
-    top: -4px;
-    bottom: -4px;
-    width: 3px;
-    border-radius: 999px;
-    background: var(--link-color);
-    box-shadow: 0 0 8px rgba(56,189,248,.6);
-    z-index: 5;
-    pointer-events: none;
-  }
-
-  .att-item.attachment-drop-before::before { left: -5px; }
-  .att-item.attachment-drop-after::after { right: -5px; }
   .att-pill {
     background: var(--pill-bg);
     color: var(--text-main);
@@ -1351,6 +1325,23 @@ body.theme-soul .btn-layout-settings {
     color: var(--text-main);
     font-weight: 700;
   }
+
+
+  /* 첨부파일 외부 드래그&드롭 전용 표시 */
+  .attachments-section {
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .attachments-section.file-drag-over {
+    border-color: var(--link-color) !important;
+    background: rgba(56, 189, 248, 0.10) !important;
+    box-shadow: inset 0 0 0 1px var(--link-color), 0 0 12px rgba(56, 189, 248, 0.18);
+  }
+  .attachments-section.file-drag-over .att-header::after {
+    content: " · 여기에 놓아 첨부";
+    color: var(--link-color);
+    font-weight: 800;
+  }
+  .att-list { min-height: 36px; }
 
   /* 첨부파일은 파일명만 표시하고, 누르면 보기/저장/삭제 선택창을 엽니다. */
   .att-file-trigger {
@@ -1861,7 +1852,7 @@ body.theme-soul .btn-layout-settings {
   }
 
   .reference-files-wrap { margin-top: 9px; display: flex; flex-direction: column; gap: 7px; }
-  .reference-file-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px; }
+  .reference-file-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px; }
   .reference-file-row .reference-file-trigger { margin-top: 0; }
   .reference-file-order-actions { display: inline-flex; align-items: center; gap: 4px; }
   .reference-file-order-btn {
@@ -1870,31 +1861,6 @@ body.theme-soul .btn-layout-settings {
   }
   .reference-file-order-btn:disabled { opacity: .28; cursor: default; }
   .reference-file-order-btn:active:not(:disabled) { background: var(--surface-3); color: var(--text-main); }
-  .reference-file-drag-grip {
-    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 7px; border: 1px dashed var(--pill-border); background: transparent; color: var(--text-sub);
-    cursor: grab; user-select: none; -webkit-user-select: none; flex: 0 0 auto; font-size: .9rem;
-  }
-  .reference-file-drag-grip:active { cursor: grabbing; background: var(--surface-3); color: var(--text-main); }
-  .reference-file-row { position: relative; }
-  .reference-file-row.attachment-dragging { opacity: .45; }
-
-  .reference-file-row.attachment-drop-before::before,
-  .reference-file-row.attachment-drop-after::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 3px;
-    border-radius: 999px;
-    background: var(--link-color);
-    box-shadow: 0 0 8px rgba(56,189,248,.6);
-    z-index: 5;
-    pointer-events: none;
-  }
-
-  .reference-file-row.attachment-drop-before::before { top: -5px; }
-  .reference-file-row.attachment-drop-after::after { bottom: -5px; }
   .reference-empty-files { padding: 11px 12px; border: 1px dashed var(--pill-border); border-radius: 8px; color: var(--text-sub); font-size: .8rem; }
   .reference-file-add-row { display: flex; justify-content: flex-end; margin-top: 7px; }
   .board-column-hidden, .board-tab-hidden { display: none !important; }
@@ -2123,6 +2089,21 @@ body.theme-soul .btn-layout-settings {
     outline: none;
     resize: none;
   }
+
+
+  /* ========================================================
+     iPad: 업무카드 6점 드래그 핸들 숨김
+     - ▲ ▼ 순서 버튼만 표시
+     - PC의 업무카드 드래그 기능은 그대로 유지
+  ======================================================== */
+  @supports (-webkit-touch-callout: none) {
+    @media (pointer: coarse) {
+      .drag-handle {
+        display: none !important;
+      }
+    }
+  }
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2956,7 +2937,6 @@ function handleColumnDragStart(event, status) {
     draggedColumnStatus = status;
     draggedId = null;
 
-    clearAttachmentDragClasses();
     clearColumnDragIndicators();
 
     const col = document.getElementById('col-' + status);
@@ -4803,76 +4783,8 @@ async function saveCloudBoard() {
       renderReferenceLibrary();
     }
 
-    let draggedReferenceAttachment = null;
+    /* 첨부파일 순서 변경은 ▲ / ▼ 버튼만 사용합니다. */
 
-    function handleReferenceAttachmentDragStart(event, referenceIndex, fileIndex) {
-      draggedReferenceAttachment = {
-        referenceIndex: Number(referenceIndex),
-        fileIndex: Number(fileIndex)
-      };
-
-      if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', 'reference-attachment:' + referenceIndex + ':' + fileIndex);
-      }
-
-      const row = event.currentTarget.closest('.reference-file-row');
-      if (row) row.classList.add('attachment-dragging');
-
-      event.stopPropagation();
-    }
-
-    function handleReferenceAttachmentDragOver(event, referenceIndex) {
-      if (!draggedReferenceAttachment || draggedReferenceAttachment.referenceIndex !== Number(referenceIndex)) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-
-      const row = event.currentTarget;
-      clearAttachmentDropIndicators();
-
-      const rect = row.getBoundingClientRect();
-      const insertAfter = event.clientY > rect.top + rect.height / 2;
-
-      row.classList.add(insertAfter ? 'attachment-drop-after' : 'attachment-drop-before');
-    }
-
-    async function handleReferenceAttachmentDrop(event, referenceIndex, targetFileIndex) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const drag = draggedReferenceAttachment;
-      const row = event.currentTarget;
-      const rect = row ? row.getBoundingClientRect() : null;
-      const insertAfter = rect ? event.clientY > rect.top + rect.height / 2 : false;
-
-      clearAttachmentDragClasses();
-      draggedReferenceAttachment = null;
-
-      if (!drag || drag.referenceIndex !== Number(referenceIndex)) return;
-
-      const item = boardMeta.referenceFiles[Number(referenceIndex)];
-      if (!item) return;
-
-      const files = getReferenceItemFiles(item);
-      const sourceIdx = Number(drag.fileIndex);
-      let targetIdx = Number(targetFileIndex);
-
-      if (sourceIdx === targetIdx || !files[sourceIdx] || !files[targetIdx]) return;
-
-      const [movingFile] = files.splice(sourceIdx, 1);
-
-      if (sourceIdx < targetIdx) targetIdx -= 1;
-
-      const insertIndex = targetIdx + (insertAfter ? 1 : 0);
-      files.splice(insertIndex, 0, movingFile);
-
-      reindexReferenceAttachments(item);
-      await persistBoardMetaImmediately();
-      renderReferenceLibrary();
-    }
     let currentTargetReferenceIndex = null;
 
     function triggerReferenceFileUpload(referenceIndex) {
@@ -5154,14 +5066,7 @@ async function saveCloudBoard() {
 
         const filesHtml = files.length > 0
           ? files.map((file, fileIndex) => `
-              <div class="reference-file-row"
-                   ondragover="handleReferenceAttachmentDragOver(event, ${index})"
-                   ondragleave="handleAttachmentDragLeave(event)"
-                   ondrop="handleReferenceAttachmentDrop(event, ${index}, ${fileIndex})">
-                <span class="reference-file-drag-grip" draggable="true"
-                      ondragstart="handleReferenceAttachmentDragStart(event, ${index}, ${fileIndex})"
-                      ondragend="handleAttachmentDragEnd(event)"
-                      title="마우스로 끌어서 첨부파일 순서 변경" aria-label="첨부파일 드래그 순서 변경">⠿</span>
+              <div class="reference-file-row">
                 <button
                   class="reference-file-trigger"
                   type="button"
@@ -5172,8 +5077,8 @@ async function saveCloudBoard() {
                   <span class="reference-file-name">${escapeHtml(file.name || "첨부파일")}</span>
                 </button>
                 <div class="reference-file-order-actions" aria-label="첨부파일 순서 변경">
-                  <button class="reference-file-order-btn" type="button" onclick="moveReferenceAttachment(${index}, ${fileIndex}, -1)" ${fileIndex > 0 ? "" : "disabled"} title="첨부파일 위로 이동">↑</button>
-                  <button class="reference-file-order-btn" type="button" onclick="moveReferenceAttachment(${index}, ${fileIndex}, 1)" ${fileIndex < files.length - 1 ? "" : "disabled"} title="첨부파일 아래로 이동">↓</button>
+                  <button class="reference-file-order-btn" type="button" onclick="moveReferenceAttachment(${index}, ${fileIndex}, -1)" ${fileIndex > 0 ? "" : "disabled"} title="첨부파일 위로 이동">▲</button>
+                  <button class="reference-file-order-btn" type="button" onclick="moveReferenceAttachment(${index}, ${fileIndex}, 1)" ${fileIndex < files.length - 1 ? "" : "disabled"} title="첨부파일 아래로 이동">▼</button>
                 </div>
               </div>
             `).join("")
@@ -5802,14 +5707,7 @@ async function saveCloudBoard() {
       }
 
       return files.map((file, idx) => `
-        <div class="att-item"
-             ondragover="handleTaskAttachmentDragOver(event, '${taskId}')"
-             ondragleave="handleAttachmentDragLeave(event)"
-             ondrop="handleTaskAttachmentDrop(event, '${taskId}', ${idx})">
-          <span class="attachment-drag-grip" draggable="true"
-                ondragstart="handleTaskAttachmentDragStart(event, '${taskId}', ${idx})"
-                ondragend="handleAttachmentDragEnd(event)"
-                title="마우스로 끌어서 붙임파일 순서 변경" aria-label="붙임파일 드래그 순서 변경">⠿</span>
+        <div class="att-item">
           <button class="att-pill att-file-trigger" type="button"
                   onclick="openAttachmentActionMenu('${taskId}', ${idx})"
                   title="클릭하여 보기·저장·삭제 선택">
@@ -5819,10 +5717,10 @@ async function saveCloudBoard() {
           <div class="attachment-order-controls" aria-label="붙임파일 순서 변경">
             <button class="attachment-order-btn" type="button"
                     onclick="moveTaskAttachment('${taskId}', ${idx}, -1)"
-                    ${idx > 0 ? '' : 'disabled'} title="붙임파일 위로 이동">↑</button>
+                    ${idx > 0 ? '' : 'disabled'} title="붙임파일 위로 이동" aria-label="붙임파일 위로 이동">▲</button>
             <button class="attachment-order-btn" type="button"
                     onclick="moveTaskAttachment('${taskId}', ${idx}, 1)"
-                    ${idx < files.length - 1 ? '' : 'disabled'} title="붙임파일 아래로 이동">↓</button>
+                    ${idx < files.length - 1 ? '' : 'disabled'} title="붙임파일 아래로 이동" aria-label="붙임파일 아래로 이동">▼</button>
           </div>
         </div>
       `).join('');
@@ -5880,7 +5778,10 @@ async function saveCloudBoard() {
           const doneFilesHtml = `
             <details class="done-attachments">
               <summary>📎 붙임파일 ${files.length}개</summary>
-              <div class="attachments-section">
+              <div class="attachments-section"
+                   ondragover="handleTaskFileDragOver(event, '${task.id}')"
+                   ondragleave="handleTaskFileDragLeave(event)"
+                   ondrop="handleTaskFileDrop(event, '${task.id}')">
                 <div class="att-top">
                   <span class="att-header">완료 업무 첨부자료</span>
                   <button class="btn-add-file" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
@@ -5930,7 +5831,10 @@ async function saveCloudBoard() {
           `;
 
           const filesHtml = `
-            <div class="attachments-section">
+            <div class="attachments-section"
+                 ondragover="handleTaskFileDragOver(event, '${task.id}')"
+                 ondragleave="handleTaskFileDragLeave(event)"
+                 ondrop="handleTaskFileDrop(event, '${task.id}')">
               <div class="att-top">
                 <span class="att-header">📎 붙임파일 (${files.length})</span>
                 <button class="btn-add-file" onclick="triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
@@ -5980,109 +5884,8 @@ async function saveCloudBoard() {
       applyEmptyColumnStates(counts);
     }
 
-    let draggedTaskAttachment = null;
+    /* 첨부파일 순서 변경은 ▲ / ▼ 버튼만 사용합니다. */
 
-    function handleTaskAttachmentDragStart(event, taskId, fileIdx) {
-      draggedTaskAttachment = {
-        taskId: taskId,
-        fileIdx: Number(fileIdx)
-      };
-
-      if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', 'task-attachment:' + taskId + ':' + fileIdx);
-      }
-
-      const row = event.currentTarget.closest('.att-item');
-      if (row) row.classList.add('attachment-dragging');
-
-      event.stopPropagation();
-    }
-
-    function handleTaskAttachmentDragOver(event, taskId) {
-      if (!draggedTaskAttachment || draggedTaskAttachment.taskId !== taskId) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-
-      const row = event.currentTarget;
-      clearAttachmentDropIndicators();
-
-      const rect = row.getBoundingClientRect();
-      const insertAfter = event.clientX > rect.left + rect.width / 2;
-
-      row.classList.add(insertAfter ? 'attachment-drop-after' : 'attachment-drop-before');
-    }
-
-    async function handleTaskAttachmentDrop(event, taskId, targetIdx) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const drag = draggedTaskAttachment;
-      const row = event.currentTarget;
-      const rect = row ? row.getBoundingClientRect() : null;
-      const insertAfter = rect ? event.clientX > rect.left + rect.width / 2 : false;
-
-      clearAttachmentDragClasses();
-      draggedTaskAttachment = null;
-
-      if (!drag || drag.taskId !== taskId) return;
-
-      const task = tasksData.find(t => t.id === taskId);
-      if (!task || !Array.isArray(task.files)) return;
-
-      const sourceIdx = Number(drag.fileIdx);
-      let targetIndex = Number(targetIdx);
-
-      if (sourceIdx === targetIndex || !task.files[sourceIdx] || !task.files[targetIndex]) return;
-
-      const [movingFile] = task.files.splice(sourceIdx, 1);
-
-      if (sourceIdx < targetIndex) targetIndex -= 1;
-
-      const insertIndex = targetIndex + (insertAfter ? 1 : 0);
-      task.files.splice(insertIndex, 0, movingFile);
-
-      saveAll();
-
-      if (cloudReady) {
-        if (cloudSaveTimer) {
-          clearTimeout(cloudSaveTimer);
-          cloudSaveTimer = null;
-        }
-        await saveCloudBoard();
-      }
-    }
-
-    function handleAttachmentDragLeave(event) {
-      if (!event.currentTarget) return;
-
-      if (!event.currentTarget.contains(event.relatedTarget)) {
-        event.currentTarget.classList.remove('attachment-drop-before', 'attachment-drop-after');
-      }
-    }
-
-    function clearAttachmentDropIndicators() {
-      document.querySelectorAll('.attachment-drop-before, .attachment-drop-after').forEach(el => {
-        el.classList.remove('attachment-drop-before', 'attachment-drop-after');
-      });
-    }
-
-    function clearAttachmentDragClasses() {
-      document.querySelectorAll('.attachment-dragging, .attachment-drop-before, .attachment-drop-after').forEach(el => {
-        el.classList.remove('attachment-dragging', 'attachment-drop-before', 'attachment-drop-after');
-      });
-    }
-
-    function handleAttachmentDragEnd(event) {
-      draggedTaskAttachment = null;
-      draggedReferenceAttachment = null;
-      clearAttachmentDragClasses();
-
-      if (event) event.stopPropagation();
-    }
     async function moveTaskAttachment(taskId, fileIdx, direction) {
       const task = tasksData.find(t => t.id === taskId);
       if (!task || !Array.isArray(task.files)) return;
@@ -6237,6 +6040,104 @@ async function handleDirectFileSelected(input) {
         targetTaskId,
         selectedFiles
     );
+}
+
+
+/* ========================================================
+   첨부파일 외부 드래그 & 드롭
+   - PC 파일탐색기 → 업무의 첨부파일 영역
+   - 기존 첨부파일 순서 변경 드래그와 분리
+======================================================== */
+
+function isExternalFileDrag(event) {
+    const dt = event && event.dataTransfer;
+
+    if (!dt) {
+        return false;
+    }
+
+    /* drop 시점에는 실제 FileList로 가장 정확하게 판별 */
+    if (dt.files && dt.files.length > 0) {
+        return true;
+    }
+
+    /* dragover 시점에는 브라우저에 따라 files가 비어 있을 수 있음 */
+    if (dt.items && dt.items.length > 0) {
+        try {
+            if (Array.from(dt.items).some(item => item && item.kind === "file")) {
+                return true;
+            }
+        } catch (error) {
+            /* items 판별 실패 시 types 판별로 계속 진행 */
+        }
+    }
+
+    if (dt.types) {
+        try {
+            return Array.from(dt.types).includes("Files");
+        } catch (error) {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+function handleTaskFileDragOver(event, taskId) {
+    if (!isExternalFileDrag(event)) {
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = "copy";
+    }
+
+    if (event.currentTarget) {
+        event.currentTarget.classList.add("file-drag-over");
+    }
+}
+
+function handleTaskFileDragLeave(event) {
+    const area = event.currentTarget;
+
+    if (!area) {
+        return;
+    }
+
+    /* 영역 내부의 자식 요소 사이 이동은 실제 이탈로 보지 않음 */
+    if (event.relatedTarget && area.contains(event.relatedTarget)) {
+        return;
+    }
+
+    area.classList.remove("file-drag-over");
+}
+
+async function handleTaskFileDrop(event, taskId) {
+    if (!isExternalFileDrag(event)) {
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.currentTarget) {
+        event.currentTarget.classList.remove("file-drag-over");
+    }
+
+    const files = Array.from(
+        event.dataTransfer && event.dataTransfer.files
+            ? event.dataTransfer.files
+            : []
+    );
+
+    if (files.length === 0) {
+        return;
+    }
+
+    await attachFiles(taskId, files);
 }
 
 
