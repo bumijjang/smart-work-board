@@ -2047,6 +2047,266 @@ body.theme-soul .btn-layout-settings {
     .category-add-row { grid-template-columns: 1fr; }
   }
 
+
+  /* ========================================================
+     통합검색
+     - 업무명 / 세부업무 / 업무 붙임파일 / 자료보관함 / 자료보관함 붙임파일 검색
+     - 상위 업무·자료명이 검색되면 그 항목의 관련 첨부파일도 함께 표시
+  ======================================================== */
+  .btn-unified-search {
+    background: var(--pill-bg);
+    color: var(--text-main);
+    border: 1px solid var(--link-color);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-weight: 850;
+    font-size: 0.84rem;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    box-shadow: 0 0 0 1px rgba(56,189,248,.06);
+  }
+
+  .btn-unified-search:active {
+    background: var(--surface-3);
+    transform: scale(.98);
+  }
+
+  body.theme-soul .btn-unified-search {
+    background: rgba(6,11,18,.88);
+    border-color: rgba(54,202,255,.72);
+    color: #fff9ef;
+  }
+
+  #unifiedSearchModal { z-index: 2200; }
+
+  .unified-search-modal-box {
+    width: min(980px, calc(100vw - 48px));
+    max-width: 980px;
+    max-height: 90vh;
+    overflow: hidden;
+    padding: 18px;
+  }
+
+  .unified-search-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .unified-search-title {
+    font-size: 1.22rem;
+    font-weight: 900;
+    color: var(--text-main);
+  }
+
+  .unified-search-desc {
+    margin-top: 5px;
+    color: var(--text-sub);
+    font-size: .8rem;
+    line-height: 1.5;
+  }
+
+  .unified-search-input-row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap: 8px;
+  }
+
+  .unified-search-input {
+    width: 100%;
+    min-height: 46px;
+    background: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    padding: 11px 13px;
+    outline: none;
+    font-size: .95rem;
+    font-weight: 700;
+  }
+
+  .unified-search-input:focus {
+    border-color: var(--todo-color);
+    box-shadow: 0 0 0 2px rgba(56,189,248,.10);
+  }
+
+  .unified-search-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .unified-search-filter {
+    appearance: none;
+    border: 1px solid var(--pill-border);
+    background: var(--surface-1);
+    color: var(--text-sub);
+    border-radius: 999px;
+    padding: 7px 11px;
+    font-size: .76rem;
+    font-weight: 850;
+    cursor: pointer;
+  }
+
+  .unified-search-filter.active {
+    color: var(--text-main);
+    border-color: var(--todo-color);
+    background: rgba(56,189,248,.10);
+  }
+
+  .unified-search-summary {
+    min-height: 22px;
+    color: var(--text-sub);
+    font-size: .78rem;
+    line-height: 1.45;
+  }
+
+  .unified-search-results {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 4px;
+  }
+
+  .unified-search-empty {
+    padding: 28px 18px;
+    border: 1px dashed var(--pill-border);
+    border-radius: 10px;
+    color: var(--text-sub);
+    text-align: center;
+    line-height: 1.65;
+    font-size: .86rem;
+  }
+
+  .unified-search-result-card {
+    border: 1px solid var(--border-color);
+    background: var(--panel-bg);
+    border-radius: 10px;
+    padding: 13px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .unified-search-result-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .unified-search-result-main { min-width: 0; flex: 1; }
+
+  .unified-search-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+
+  .unified-search-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 23px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--pill-border);
+    background: var(--surface-2);
+    color: var(--text-sub);
+    font-size: .69rem;
+    font-weight: 850;
+  }
+
+  .unified-search-result-title {
+    color: var(--text-main);
+    font-size: .96rem;
+    font-weight: 900;
+    line-height: 1.45;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .unified-search-result-snippet {
+    margin-top: 4px;
+    color: var(--text-sub);
+    font-size: .76rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .unified-search-location-btn {
+    flex: 0 0 auto;
+    border: 1px solid var(--pill-border);
+    background: var(--input-bg);
+    color: var(--link-color);
+    border-radius: 7px;
+    padding: 7px 9px;
+    font-size: .74rem;
+    font-weight: 850;
+    cursor: pointer;
+  }
+
+  .unified-search-files {
+    border-top: 1px solid var(--divider-color);
+    padding-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .unified-search-file-btn {
+    max-width: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--pill-border);
+    background: var(--surface-2);
+    color: var(--text-main);
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: .76rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .unified-search-file-btn:hover { border-color: var(--link-color); }
+  .unified-search-file-btn span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 360px;
+  }
+
+  .unified-search-no-files {
+    color: var(--text-sub);
+    font-size: .74rem;
+  }
+
+  .task-card.search-target-highlight {
+    animation: unifiedSearchTargetPulse 1.8s ease;
+    border-color: var(--todo-color) !important;
+  }
+
+  @keyframes unifiedSearchTargetPulse {
+    0%, 100% { box-shadow: 0 4px 12px var(--shadow-color); }
+    25%, 65% { box-shadow: 0 0 0 3px rgba(56,189,248,.24), 0 10px 26px var(--shadow-color); }
+  }
+
+  @media (max-width: 700px) {
+    .unified-search-modal-box { width: 94vw; max-width: 94vw; max-height: 92vh; padding: 14px; }
+    .unified-search-input-row { grid-template-columns: 1fr; }
+    .unified-search-result-head { flex-direction: column; }
+    .unified-search-location-btn { width: 100%; }
+    .unified-search-file-btn { width: 100%; }
+    .unified-search-file-btn span:last-child { max-width: calc(100vw - 110px); }
+  }
+
   /* Modal (iPad 터치 백업/복원 텍스트 지원) */
   .modal-overlay {
     position: fixed;
@@ -2261,6 +2521,14 @@ body.theme-soul .btn-layout-settings {
         title="PC F5와 같이 업무보드 전체 새로고침"
         onclick="refreshBoardPage(this)">
     🔄 새로고침
+</button>
+
+<button class="btn-unified-search"
+        id="unifiedSearchButton"
+        type="button"
+        title="업무·세부업무·붙임파일·자료보관함 통합검색"
+        onclick="openUnifiedSearch()">
+    🔎 통합검색
 </button>
 
 <button class="btn-reference"
@@ -2558,6 +2826,44 @@ body.theme-soul .btn-layout-settings {
           <button class="btn-new-task" type="button" onclick="saveColumnSettings()">저장</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 업무 / 세부업무 / 붙임파일 / 자료보관함 통합검색 -->
+  <div class="modal-overlay" id="unifiedSearchModal" role="dialog" aria-modal="true" aria-labelledby="unifiedSearchTitle">
+    <div class="modal-box unified-search-modal-box">
+      <div class="unified-search-header">
+        <div>
+          <div class="unified-search-title" id="unifiedSearchTitle">🔎 통합검색</div>
+          <div class="unified-search-desc">
+            업무명·세부업무·붙임파일명·자료보관함의 자료명·분류·메모·첨부파일명을 한 번에 검색합니다.
+          </div>
+        </div>
+        <button class="btn-sync" type="button" onclick="closeUnifiedSearch()">닫기</button>
+      </div>
+
+      <div class="unified-search-input-row">
+        <input
+          class="unified-search-input"
+          id="unifiedSearchInput"
+          type="search"
+          autocomplete="off"
+          placeholder="예: 주유취급소, 자체점검, 긴급구조통제단, 계획서.pdf"
+          oninput="renderUnifiedSearch()"
+          onkeydown="handleUnifiedSearchKeydown(event)"
+        >
+        <button class="btn-sync" type="button" onclick="clearUnifiedSearchQuery()">검색어 지우기</button>
+      </div>
+
+      <div class="unified-search-filters" aria-label="통합검색 범위">
+        <button class="unified-search-filter active" type="button" data-search-filter="all" onclick="setUnifiedSearchFilter('all', this)">전체</button>
+        <button class="unified-search-filter" type="button" data-search-filter="task" onclick="setUnifiedSearchFilter('task', this)">업무</button>
+        <button class="unified-search-filter" type="button" data-search-filter="file" onclick="setUnifiedSearchFilter('file', this)">붙임파일명</button>
+        <button class="unified-search-filter" type="button" data-search-filter="reference" onclick="setUnifiedSearchFilter('reference', this)">자료보관함</button>
+      </div>
+
+      <div class="unified-search-summary" id="unifiedSearchSummary"></div>
+      <div class="unified-search-results" id="unifiedSearchResults"></div>
     </div>
   </div>
 
@@ -5726,6 +6032,352 @@ async function saveCloudBoard() {
       `).join('');
     }
 
+
+    /* ========================================================
+       5-1. 통합검색
+       - 전체: 업무/자료 메타데이터 또는 파일명이 일치하면 해당 항목과 관련 첨부파일 표시
+       - 업무: 업무명/세부업무 검색
+       - 붙임파일명: 실제 첨부파일 이름만 검색
+       - 자료보관함: 자료명/분류/메모/자료보관함 첨부파일 검색
+    ======================================================== */
+    let unifiedSearchFilter = "all";
+
+    function normalizeUnifiedSearchText(value) {
+      return String(value ?? "")
+        .normalize("NFKC")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function getUnifiedSearchTokens(query) {
+      return normalizeUnifiedSearchText(query)
+        .split(" ")
+        .map(token => token.trim())
+        .filter(Boolean);
+    }
+
+    function unifiedSearchMatches(value, tokens) {
+      if (!tokens.length) return false;
+      const haystack = normalizeUnifiedSearchText(value);
+      return tokens.every(token => haystack.includes(token));
+    }
+
+    function getTaskSearchBaseText(task) {
+      const subtasks = Array.isArray(task?.subtasks) ? task.subtasks : [];
+      return [
+        task?.title || "",
+        subtasks.map(item => item?.text || "").join(" ")
+      ].join(" ");
+    }
+
+    function getReferenceSearchBaseText(item) {
+      return [
+        item?.title || "",
+        item?.category || "",
+        item?.memo || ""
+      ].join(" ");
+    }
+
+    function makeUnifiedSearchSnippet(text, maxLength = 150) {
+      const normalized = String(text || "").replace(/\s+/g, " ").trim();
+      if (!normalized) return "";
+      return normalized.length > maxLength
+        ? normalized.slice(0, maxLength - 1) + "…"
+        : normalized;
+    }
+
+    function collectUnifiedSearchResults(query) {
+      const tokens = getUnifiedSearchTokens(query);
+      if (!tokens.length) return [];
+
+      const results = [];
+
+      (tasksData || []).forEach(task => {
+        if (!task) return;
+
+        const files = Array.isArray(task.files) ? task.files : [];
+        const baseText = getTaskSearchBaseText(task);
+        const baseMatch = unifiedSearchMatches(baseText, tokens);
+        const matchingFiles = files
+          .map((file, fileIdx) => ({ file, fileIdx }))
+          .filter(({ file }) => unifiedSearchMatches(file?.name || "", tokens));
+
+        let include = false;
+        let filesToShow = [];
+
+        if (unifiedSearchFilter === "task") {
+          include = baseMatch;
+          filesToShow = files.map((file, fileIdx) => ({ file, fileIdx }));
+        } else if (unifiedSearchFilter === "file") {
+          include = matchingFiles.length > 0;
+          filesToShow = matchingFiles;
+        } else if (unifiedSearchFilter === "all") {
+          include = baseMatch || matchingFiles.length > 0;
+          filesToShow = baseMatch
+            ? files.map((file, fileIdx) => ({ file, fileIdx }))
+            : matchingFiles;
+        }
+
+        if (!include) return;
+
+        results.push({
+          source: "task",
+          task,
+          filesToShow,
+          snippet: makeUnifiedSearchSnippet(
+            (Array.isArray(task.subtasks) ? task.subtasks : [])
+              .map(item => item?.text || "")
+              .filter(Boolean)
+              .join(" · ")
+          )
+        });
+      });
+
+      (boardMeta?.referenceFiles || []).forEach((item, index) => {
+        if (!item) return;
+
+        const files = getReferenceItemFiles(item);
+        const baseText = getReferenceSearchBaseText(item);
+        const baseMatch = unifiedSearchMatches(baseText, tokens);
+        const matchingFiles = files
+          .map((file, fileIdx) => ({ file, fileIdx }))
+          .filter(({ file }) => unifiedSearchMatches(file?.name || "", tokens));
+
+        let include = false;
+        let filesToShow = [];
+
+        if (unifiedSearchFilter === "reference") {
+          include = baseMatch || matchingFiles.length > 0;
+          filesToShow = baseMatch
+            ? files.map((file, fileIdx) => ({ file, fileIdx }))
+            : matchingFiles;
+        } else if (unifiedSearchFilter === "file") {
+          include = matchingFiles.length > 0;
+          filesToShow = matchingFiles;
+        } else if (unifiedSearchFilter === "all") {
+          include = baseMatch || matchingFiles.length > 0;
+          filesToShow = baseMatch
+            ? files.map((file, fileIdx) => ({ file, fileIdx }))
+            : matchingFiles;
+        }
+
+        if (!include) return;
+
+        results.push({
+          source: "reference",
+          item,
+          index,
+          filesToShow,
+          snippet: makeUnifiedSearchSnippet(item.memo || "")
+        });
+      });
+
+      return results;
+    }
+
+    function getUnifiedSearchStatusLabel(status) {
+      try {
+        return getStatusOptionLabel(status) || status || "업무";
+      } catch (error) {
+        return status || "업무";
+      }
+    }
+
+    function renderUnifiedSearchFileButtons(result) {
+      const files = result.filesToShow || [];
+      if (!files.length) {
+        return '<span class="unified-search-no-files">관련 붙임파일 없음</span>';
+      }
+
+      if (result.source === "task") {
+        const taskIdJson = JSON.stringify(String(result.task.id));
+        return files.map(({ file, fileIdx }) => `
+          <button class="unified-search-file-btn" type="button"
+                  onclick='openAttachmentActionMenu(${taskIdJson}, ${fileIdx})'
+                  title="파일 보기·저장·삭제">
+            <span aria-hidden="true">📎</span>
+            <span>${escapeHtml(file?.name || "첨부파일")}</span>
+          </button>
+        `).join("");
+      }
+
+      return files.map(({ file, fileIdx }) => `
+        <button class="unified-search-file-btn" type="button"
+                onclick="openReferenceActionMenu(${result.index}, ${fileIdx})"
+                title="파일 보기·저장·삭제">
+          <span aria-hidden="true">📎</span>
+          <span>${escapeHtml(file?.name || "첨부파일")}</span>
+        </button>
+      `).join("");
+    }
+
+    function renderUnifiedSearch() {
+      const input = document.getElementById("unifiedSearchInput");
+      const resultsBox = document.getElementById("unifiedSearchResults");
+      const summary = document.getElementById("unifiedSearchSummary");
+      if (!input || !resultsBox || !summary) return;
+
+      const query = input.value.trim();
+      if (!query) {
+        summary.textContent = "";
+        resultsBox.innerHTML = `
+          <div class="unified-search-empty">
+            검색어를 입력하면 관련 업무와 붙임파일을 한 번에 찾습니다.<br>
+            <span style="font-size:.76rem;">업무명이 일치하면 파일명이 달라도 그 업무에 첨부된 파일을 함께 표시합니다.</span>
+          </div>
+        `;
+        return;
+      }
+
+      const results = collectUnifiedSearchResults(query);
+      const taskCount = results.filter(item => item.source === "task").length;
+      const referenceCount = results.filter(item => item.source === "reference").length;
+      const fileCount = results.reduce((sum, item) => sum + (item.filesToShow?.length || 0), 0);
+
+      summary.textContent = `“${query}” 검색결과 · 업무 ${taskCount}건 · 자료보관함 ${referenceCount}건 · 표시 파일 ${fileCount}개`;
+
+      if (!results.length) {
+        resultsBox.innerHTML = `
+          <div class="unified-search-empty">
+            조건에 맞는 업무나 파일이 없습니다.<br>
+            <span style="font-size:.76rem;">띄어쓰기를 줄이거나 ‘전체’ 범위에서 다시 검색해 보세요.</span>
+          </div>
+        `;
+        return;
+      }
+
+      resultsBox.innerHTML = results.map(result => {
+        if (result.source === "task") {
+          const task = result.task;
+          const taskIdJson = JSON.stringify(String(task.id));
+          const statusLabel = getUnifiedSearchStatusLabel(task.status);
+          return `
+            <article class="unified-search-result-card">
+              <div class="unified-search-result-head">
+                <div class="unified-search-result-main">
+                  <div class="unified-search-result-meta">
+                    <span class="unified-search-badge">📋 업무</span>
+                    <span class="unified-search-badge">${escapeHtml(statusLabel)}</span>
+                  </div>
+                  <div class="unified-search-result-title">${escapeHtml(task.title || "업무")}</div>
+                  ${result.snippet ? `<div class="unified-search-result-snippet">${escapeHtml(result.snippet)}</div>` : ""}
+                </div>
+                <button class="unified-search-location-btn" type="button"
+                        onclick='jumpToTaskFromUnifiedSearch(${taskIdJson})'>업무로 이동</button>
+              </div>
+              <div class="unified-search-files">${renderUnifiedSearchFileButtons(result)}</div>
+            </article>
+          `;
+        }
+
+        return `
+          <article class="unified-search-result-card">
+            <div class="unified-search-result-head">
+              <div class="unified-search-result-main">
+                <div class="unified-search-result-meta">
+                  <span class="unified-search-badge">📚 자료보관함</span>
+                  <span class="unified-search-badge">🏷 ${escapeHtml(result.item.category || "기타")}</span>
+                </div>
+                <div class="unified-search-result-title">${escapeHtml(result.item.title || "참고자료")}</div>
+                ${result.snippet ? `<div class="unified-search-result-snippet">${escapeHtml(result.snippet)}</div>` : ""}
+              </div>
+              <button class="unified-search-location-btn" type="button"
+                      onclick="jumpToReferenceFromUnifiedSearch(${result.index})">보관함에서 보기</button>
+            </div>
+            <div class="unified-search-files">${renderUnifiedSearchFileButtons(result)}</div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function openUnifiedSearch(initialQuery = "") {
+      const modal = document.getElementById("unifiedSearchModal");
+      const input = document.getElementById("unifiedSearchInput");
+      if (!modal || !input) return;
+
+      modal.style.display = "flex";
+      if (initialQuery) input.value = initialQuery;
+      renderUnifiedSearch();
+
+      requestAnimationFrame(() => {
+        input.focus();
+        if (input.value) input.select();
+      });
+    }
+
+    function closeUnifiedSearch() {
+      const modal = document.getElementById("unifiedSearchModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    function clearUnifiedSearchQuery() {
+      const input = document.getElementById("unifiedSearchInput");
+      if (!input) return;
+      input.value = "";
+      renderUnifiedSearch();
+      input.focus();
+    }
+
+    function setUnifiedSearchFilter(filter, button) {
+      const allowed = ["all", "task", "file", "reference"];
+      unifiedSearchFilter = allowed.includes(filter) ? filter : "all";
+
+      document.querySelectorAll(".unified-search-filter").forEach(item => {
+        item.classList.toggle("active", item.dataset.searchFilter === unifiedSearchFilter);
+      });
+
+      if (button) button.classList.add("active");
+      renderUnifiedSearch();
+    }
+
+    function handleUnifiedSearchKeydown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeUnifiedSearch();
+      }
+    }
+
+    function jumpToTaskFromUnifiedSearch(taskId) {
+      const task = tasksData.find(item => item.id === taskId);
+      if (!task) return;
+
+      closeUnifiedSearch();
+      renderBoard();
+
+      const tabButton = document.getElementById("tabbtn-" + task.status);
+      if (tabButton) switchTab(task.status, tabButton);
+
+      requestAnimationFrame(() => {
+        const card = document.getElementById(taskId);
+        if (!card) return;
+
+        card.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+        card.classList.remove("search-target-highlight");
+        void card.offsetWidth;
+        card.classList.add("search-target-highlight");
+        setTimeout(() => card.classList.remove("search-target-highlight"), 2200);
+      });
+    }
+
+    function jumpToReferenceFromUnifiedSearch(index) {
+      const item = boardMeta?.referenceFiles?.[index];
+      if (!item) return;
+
+      closeUnifiedSearch();
+      openReferenceLibrary();
+
+      const filter = document.getElementById("referenceCategoryFilter");
+      const input = document.getElementById("referenceSearchInput");
+      if (filter) filter.value = "all";
+      if (input) input.value = item.title || "";
+      resetReferencePageAndRender();
+
+      requestAnimationFrame(() => {
+        if (input) input.focus();
+      });
+    }
+
     function renderBoard() {
       const lists = {};
       const counts = {};
@@ -6842,11 +7494,17 @@ async function deleteAttachment(
       const columnModal = document.getElementById("columnSettingsModal");
       const layoutModal = document.getElementById("boardLayoutModal");
       const referenceModal = document.getElementById("referenceModal");
+      const unifiedSearchModal = document.getElementById("unifiedSearchModal");
       const attachmentActionModal = document.getElementById("attachmentActionModal");
 
       /* 파일 동작 선택창이 떠 있으면 그 창만 먼저 닫고 자료보관함은 유지 */
       if (attachmentActionModal && attachmentActionModal.style.display === "flex") {
         closeAttachmentActionMenu();
+        return;
+      }
+
+      if (unifiedSearchModal && unifiedSearchModal.style.display === "flex") {
+        closeUnifiedSearch();
         return;
       }
 
