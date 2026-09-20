@@ -816,43 +816,94 @@ body.theme-soul .btn-layout-settings {
     color: #fff9ef;
 }
 
-.board-layout-modal-box { max-width: 620px; }
+.board-layout-modal-box {
+    max-width: 980px;
+    width: min(96vw, 980px);
+}
 .board-layout-options {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    align-items: stretch;
 }
 .board-layout-option {
     appearance: none;
     -webkit-appearance: none;
     width: 100%;
-    min-height: 118px;
-    padding: 14px 12px;
-    border-radius: 10px;
+    min-width: 0;
+    min-height: 104px;
+    padding: 12px 10px;
+    border-radius: 11px;
     border: 1px solid var(--border-color);
     background: var(--panel-bg);
     color: var(--text-main);
     cursor: pointer;
-    text-align: left;
+    text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    align-items: stretch;
+    justify-content: center;
+    gap: 7px;
+    transition: border-color .15s ease, transform .15s ease, background .15s ease, box-shadow .15s ease;
 }
-.board-layout-option:hover { border-color: var(--link-color); }
+.board-layout-option:hover {
+    border-color: var(--link-color);
+    transform: translateY(-1px);
+}
+.board-layout-option:active { transform: scale(.985); }
 .board-layout-option.active {
     border-color: var(--todo-color);
-    box-shadow: inset 0 0 0 1px var(--todo-color);
+    background: color-mix(in srgb, var(--panel-bg) 86%, var(--todo-color) 14%);
+    box-shadow: inset 0 0 0 1px var(--todo-color), 0 6px 18px rgba(56,189,248,.08);
 }
-.board-layout-option-title { font-size: 1rem; font-weight: 900; }
-.board-layout-option-desc { color: var(--text-sub); font-size: .75rem; line-height: 1.45; }
-.board-layout-preview { display: grid; gap: 3px; height: 28px; }
+.board-layout-option-title {
+    font-size: 1rem;
+    font-weight: 900;
+    text-align: center;
+}
+.board-layout-option-desc {
+    color: var(--text-sub);
+    font-size: .68rem;
+    line-height: 1.35;
+    text-align: center;
+    min-height: 1.85em;
+}
+.board-layout-preview {
+    display: grid;
+    gap: 3px;
+    height: 26px;
+    width: 100%;
+}
 .board-layout-preview.two { grid-template-columns: repeat(2, 1fr); }
+.board-layout-preview.three { grid-template-columns: repeat(3, 1fr); }
 .board-layout-preview.four { grid-template-columns: repeat(4, 1fr); }
+.board-layout-preview.five { grid-template-columns: repeat(5, 1fr); }
 .board-layout-preview.six { grid-template-columns: repeat(6, 1fr); }
-.board-layout-preview span { border-radius: 3px; background: var(--surface-3); border: 1px solid var(--pill-border); }
-@media (max-width: 640px) {
-  .board-layout-options { grid-template-columns: 1fr; }
-  .board-layout-option { min-height: auto; }
+.board-layout-preview span {
+    border-radius: 4px;
+    background: var(--surface-3);
+    border: 1px solid var(--pill-border);
+}
+.board-layout-option.active .board-layout-preview span {
+    border-color: var(--todo-color);
+}
+
+/* 휴대기기에서도 2~6칸 옵션은 한 줄 유지, 필요 시 좌우 스크롤 */
+@media (max-width: 700px) {
+  .board-layout-modal-box { width: 96vw; max-width: 96vw; padding: 14px; }
+  .board-layout-options {
+      grid-template-columns: repeat(5, minmax(108px, 1fr));
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 2px 2px 7px;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+      scrollbar-color: var(--pill-border) transparent;
+  }
+  .board-layout-options::-webkit-scrollbar { height: 7px; }
+  .board-layout-options::-webkit-scrollbar-thumb { background: var(--pill-border); border-radius: 999px; }
+  .board-layout-option { min-height: 94px; scroll-snap-align: start; }
+  .board-layout-option-desc { font-size: .64rem; }
 }
 
 /* 컬럼 너비 설정 */
@@ -986,7 +1037,7 @@ body.theme-soul .btn-layout-settings {
     margin: 0 auto;
   }
 
-  /* 6칸 모드에서는 각 컬럼 폭을 유지하면서 가로 스크롤로 탐색 */
+  /* 6칸 모드에서는 최소 폭을 유지하며 가로 스크롤 탐색 */
   .kanban-grid.board-layout-6 {
     scrollbar-width: thin;
     scrollbar-color: var(--pill-border) transparent;
@@ -998,6 +1049,7 @@ body.theme-soul .btn-layout-settings {
     border-radius: 999px;
   }
 
+  /* 일반 태블릿/좁은 화면: 한 컬럼 + 상태 탭 */
   @media (max-width: 1100px), (orientation: portrait) and (max-width: 1024px) {
     .tab-nav { display: grid; }
     .kanban-grid { grid-template-columns: 1fr; }
@@ -1005,34 +1057,54 @@ body.theme-soul .btn-layout-settings {
     .kanban-col.active-col { display: flex !important; }
   }
 
-  @media (orientation: landscape) and (min-width: 1101px) {
+  /* PC: 2~5칸은 화면 폭에 정확히 자동 맞춤, 6칸만 최소 폭/가로스크롤 */
+  @media (hover: hover) and (pointer: fine) and (min-width: 1101px) {
     .tab-nav { display: none !important; }
     .kanban-grid {
-      grid-template-columns: repeat(var(--board-column-count, 4), minmax(var(--board-column-min-width, 300px), 1fr)) !important;
+      grid-template-columns: repeat(var(--board-column-count, 4), minmax(0, 1fr)) !important;
+      width: 100%;
       max-width: calc(100vw - 32px);
-      overflow-x: auto;
+      overflow-x: hidden;
       overflow-y: visible;
       padding: 0 2px 10px;
       scroll-behavior: smooth;
-      scrollbar-width: thin;
-      scrollbar-color: var(--pill-border) transparent;
-    }
-    .kanban-grid::-webkit-scrollbar { height: 10px; }
-    .kanban-grid::-webkit-scrollbar-track { background: transparent; }
-    .kanban-grid::-webkit-scrollbar-thumb {
-      background: var(--pill-border);
-      border-radius: 999px;
     }
     .kanban-col {
       display: flex !important;
-      min-width: var(--board-column-min-width, 300px);
-      scroll-snap-align: start;
+      min-width: 0 !important;
+      width: auto;
     }
 
+    /* 5칸에서는 공간 효율을 높여 카드 가독성을 유지 */
+    .kanban-grid[data-layout-count="5"] { gap: 10px; }
+    .kanban-grid[data-layout-count="5"] .kanban-col { padding: 10px; }
+    .kanban-grid[data-layout-count="5"] .task-list { gap: 10px; }
+    .kanban-grid[data-layout-count="5"] .task-card { padding: 11px; gap: 8px; }
+    .kanban-grid[data-layout-count="5"] .card-title { font-size: .98rem; }
+    .kanban-grid[data-layout-count="5"] .subtasks-container { padding: 7px 8px; }
+    .kanban-grid[data-layout-count="5"] .att-name { max-width: 130px; }
+    .kanban-grid[data-layout-count="5"] .col-title { font-size: .92rem; }
+
+    /* 6칸은 기존 너비 프리셋을 사용 */
     .kanban-grid.board-layout-6 {
+      grid-template-columns: repeat(6, minmax(var(--board-column-min-width, 300px), 1fr)) !important;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--pill-border) transparent;
       scroll-snap-type: x proximity;
     }
+    .kanban-grid.board-layout-6::-webkit-scrollbar { height: 10px; }
+    .kanban-grid.board-layout-6::-webkit-scrollbar-track { background: transparent; }
+    .kanban-grid.board-layout-6::-webkit-scrollbar-thumb {
+      background: var(--pill-border);
+      border-radius: 999px;
+    }
+    .kanban-grid.board-layout-6 .kanban-col {
+      min-width: var(--board-column-min-width, 300px) !important;
+      scroll-snap-align: start;
+    }
   }
+
 
   /* Column Styles */
   .kanban-col {
@@ -1599,14 +1671,15 @@ body.theme-soul .btn-layout-settings {
   }
 
   /* ========================================================
-     완료 업무 첨부파일 접기/펼치기
+     모든 업무카드 붙임파일 접기/펼치기
+     - 해야할 업무 / 진행Ⅰ~Ⅳ / 완료 업무 공통 적용
   ======================================================== */
-  .done-attachments {
+  .task-attachments {
     border-top: 1px dashed var(--divider-color);
     padding-top: 7px;
   }
 
-  .done-attachments summary {
+  .task-attachments summary {
     list-style: none;
     cursor: pointer;
     color: var(--link-color);
@@ -1616,26 +1689,38 @@ body.theme-soul .btn-layout-settings {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    min-height: 30px;
     user-select: none;
     -webkit-user-select: none;
+    touch-action: manipulation;
   }
 
-  .done-attachments summary::-webkit-details-marker { display: none; }
+  .task-attachments summary::-webkit-details-marker { display: none; }
 
-  .done-attachments summary::after {
+  .task-attachments summary::after {
     content: "▾";
     color: var(--text-sub);
     transition: transform 0.15s ease;
+    flex: 0 0 auto;
   }
 
-  .done-attachments[open] summary::after {
+  .task-attachments[open] summary::after {
     transform: rotate(180deg);
   }
 
-  .done-attachments .attachments-section {
+  .task-attachments .attachments-section {
     margin-top: 8px;
     border-top: none;
     padding-top: 0;
+  }
+
+  /* iPad/터치 환경에서는 접기·펼치기 영역을 조금 더 크게 표시 */
+  @media (hover: none) and (pointer: coarse) {
+    .task-attachments summary {
+      min-height: 40px;
+      padding: 4px 2px;
+      font-size: 0.82rem;
+    }
   }
 
   /* ========================================================
@@ -2351,6 +2436,129 @@ body.theme-soul .btn-layout-settings {
   }
 
 
+  /* iPad 최적화: 가로/세로 모두 탭 기반 단일 컬럼으로 카드 폭과 터치성을 확보 */
+  @supports (-webkit-touch-callout: none) {
+    @media (max-width: 1366px) {
+      body { padding: 12px; }
+
+      .top-bar {
+        gap: 10px;
+        margin-bottom: 10px;
+        padding-bottom: 11px;
+      }
+      .app-title-wrap { min-width: min(100%, 320px); }
+      .btn-group { gap: 7px; }
+      .btn-group button,
+      .btn-group select,
+      .btn-layout-settings,
+      .btn-new-task,
+      .btn-refresh,
+      .btn-sync,
+      .theme-select {
+        min-height: 44px;
+      }
+
+      .tab-nav {
+        display: flex !important;
+        align-items: stretch;
+        gap: 8px;
+        max-width: calc(100vw - 24px);
+        margin: 0 auto 12px;
+        padding: 7px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+        scrollbar-color: var(--pill-border) transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 11px;
+        background: color-mix(in srgb, var(--surface-1) 90%, transparent);
+        -webkit-overflow-scrolling: touch;
+      }
+      .tab-nav::-webkit-scrollbar { height: 6px; }
+      .tab-nav::-webkit-scrollbar-thumb { background: var(--pill-border); border-radius: 999px; }
+      .tab-btn {
+        flex: 0 0 auto;
+        min-width: 128px;
+        min-height: 48px;
+        padding: 10px 13px;
+        font-size: .9rem;
+        border-radius: 9px;
+        scroll-snap-align: start;
+      }
+
+      .kanban-grid,
+      .kanban-grid.board-layout-6 {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        width: min(100%, 980px);
+        max-width: 980px;
+        margin: 0 auto;
+        overflow: visible !important;
+        padding: 0 0 24px;
+        gap: 0;
+      }
+      .kanban-col,
+      .kanban-grid.board-layout-6 .kanban-col {
+        display: none !important;
+        min-width: 0 !important;
+        width: 100%;
+        min-height: 68vh;
+        padding: 16px;
+        border-radius: 14px;
+      }
+      .kanban-col.active-col { display: flex !important; }
+
+      .col-header { margin-bottom: 14px; padding-bottom: 10px; }
+      .col-title { font-size: 1.05rem; }
+      .col-count { font-size: .8rem; padding: 3px 9px; }
+      .task-list { gap: 13px; }
+      .task-card,
+      .kanban-grid[data-layout-count="5"] .task-card {
+        padding: 15px;
+        gap: 11px;
+        border-radius: 11px;
+      }
+      .card-title,
+      .kanban-grid[data-layout-count="5"] .card-title {
+        font-size: 1.08rem;
+        line-height: 1.45;
+      }
+      .subtasks-container,
+      .kanban-grid[data-layout-count="5"] .subtasks-container { padding: 10px 11px; }
+      .subtask-row { min-height: 36px; font-size: .92rem; }
+      .subtask-row input[type="checkbox"] { width: 21px; height: 21px; }
+      .btn-add-subtask { min-height: 40px; font-size: .84rem; }
+      .att-list { gap: 8px; }
+      .att-pill { min-height: 40px; padding: 8px 10px; font-size: .8rem; }
+      .att-name,
+      .kanban-grid[data-layout-count="5"] .att-name { max-width: min(48vw, 360px); }
+      .attachment-order-btn { width: 34px; height: 34px; }
+      .card-footer { gap: 8px; flex-wrap: wrap; }
+      .move-select,
+      .btn-del-card,
+      .btn-order { min-height: 40px; font-size: .84rem; }
+
+      .board-layout-modal-box {
+        width: min(95vw, 940px);
+        max-width: 940px;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+      .board-layout-options {
+        grid-template-columns: repeat(5, minmax(118px, 1fr));
+        overflow-x: auto;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .board-layout-option { min-height: 100px; padding: 11px 9px; }
+      .board-layout-option-title { font-size: .96rem; }
+      .board-layout-option-desc { font-size: .66rem; }
+      .board-width-option { min-height: 72px; }
+    }
+  }
+
+
   /* ========================================================
      iPad: 업무카드 6점 드래그 핸들 숨김
      - ▲ ▼ 순서 버튼만 표시
@@ -2541,7 +2749,7 @@ body.theme-soul .btn-layout-settings {
 <button class="btn-layout-settings"
         id="boardLayoutSettingsButton"
         type="button"
-        title="업무보드 2칸·4칸·6칸 및 컬럼 너비 설정"
+        title="업무보드 2칸·3칸·4칸·5칸·6칸 및 컬럼 너비 설정"
         onclick="openBoardLayoutSettings()">
     ▦ 레이아웃 설정
     <span class="btn-layout-current" id="boardLayoutCurrent">4칸</span>
@@ -2605,7 +2813,7 @@ body.theme-soul .btn-layout-settings {
 </svg></span><span class="tab-label-text">완료</span></button>
   </nav>
 
-  <!-- Kanban Board (사용자 선택 2 / 4 / 6단 컬럼) -->
+  <!-- Kanban Board (사용자 선택 2 / 3 / 4 / 5 / 6단 컬럼) -->
   <main class="kanban-grid">
     <section class="kanban-col active-col" id="col-todo" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'todo')">
       <div class="col-header todo">
@@ -2725,13 +2933,13 @@ body.theme-soul .btn-layout-settings {
   </div>
 
 
-  <!-- 업무보드 2 / 4 / 6칸 레이아웃 설정 -->
+  <!-- 업무보드 2 / 3 / 4 / 5 / 6칸 레이아웃 설정 -->
   <div class="modal-overlay" id="boardLayoutModal" onclick="if(event.target===this) closeBoardLayoutSettings()">
     <div class="modal-box board-layout-modal-box" role="dialog" aria-modal="true" aria-labelledby="boardLayoutTitle">
       <h3 id="boardLayoutTitle" style="font-size:1.1rem; color:var(--text-main);">▦ 레이아웃 설정</h3>
       <p style="font-size:0.79rem; color:var(--text-sub); line-height:1.55;">
-        업무보드에서 사용할 컬럼 수와 컬럼 너비를 선택합니다. 숨겨질 컬럼에 업무가 남아 있으면 축소되지 않습니다.<br>
-        PC에서는 컬럼 헤더의 6점 그립(⠿)을 끌어 컬럼 순서도 자유롭게 바꿀 수 있습니다.
+        업무보드에서 사용할 컬럼 수를 선택합니다. PC의 2~5칸은 화면 폭에 자동으로 맞춰 가로스크롤 없이 표시되며, 6칸은 최소 컬럼 폭을 유지해 좌우로 탐색합니다.<br>
+        iPad에서는 카드 가독성과 터치 조작을 위해 상태 탭으로 한 컬럼씩 크게 표시합니다. PC에서는 컬럼 헤더의 6점 그립(⠿)으로 순서도 바꿀 수 있습니다.
       </p>
       <div class="board-layout-options">
         <button class="board-layout-option" type="button" data-layout-count="2" onclick="selectBoardLayoutCount(2)">
@@ -2739,22 +2947,32 @@ body.theme-soul .btn-layout-settings {
           <div class="board-layout-option-title">2칸</div>
           <div class="board-layout-option-desc">해야할 업무 · 진행완료 업무</div>
         </button>
+        <button class="board-layout-option" type="button" data-layout-count="3" onclick="selectBoardLayoutCount(3)">
+          <div class="board-layout-preview three"><span></span><span></span><span></span></div>
+          <div class="board-layout-option-title">3칸</div>
+          <div class="board-layout-option-desc">해야할 업무 · 진행 Ⅰ · 완료</div>
+        </button>
         <button class="board-layout-option" type="button" data-layout-count="4" onclick="selectBoardLayoutCount(4)">
           <div class="board-layout-preview four"><span></span><span></span><span></span><span></span></div>
           <div class="board-layout-option-title">4칸</div>
           <div class="board-layout-option-desc">해야할 업무 · 진행 Ⅰ · 진행 Ⅱ · 완료</div>
         </button>
+        <button class="board-layout-option" type="button" data-layout-count="5" onclick="selectBoardLayoutCount(5)">
+          <div class="board-layout-preview five"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="board-layout-option-title">5칸</div>
+          <div class="board-layout-option-desc">해야할 업무 · 진행 Ⅰ · 진행 Ⅱ · 진행 Ⅲ · 완료</div>
+        </button>
         <button class="board-layout-option" type="button" data-layout-count="6" onclick="selectBoardLayoutCount(6)">
           <div class="board-layout-preview six"><span></span><span></span><span></span><span></span><span></span><span></span></div>
           <div class="board-layout-option-title">6칸</div>
-          <div class="board-layout-option-desc">진행 Ⅲ · 진행 Ⅳ까지 포함한 전체 6컬럼</div>
+          <div class="board-layout-option-desc">진행 Ⅳ까지 포함한 전체 6컬럼</div>
         </button>
       </div>
 
       <div class="board-width-section">
         <div class="board-width-section-title">↔ 컬럼 너비</div>
         <div class="board-width-section-desc">
-          PC 가로 화면에서 컬럼의 최소 폭을 조절합니다. 넓게 설정하면 4칸·6칸에서 가로 스크롤이 생길 수 있습니다. 선택값은 자동 저장됩니다.
+          2~5칸은 PC 화면 폭에 자동 맞춤됩니다. 이 너비 설정은 6칸 모드에서 각 컬럼의 최소 폭에 적용되며 선택값은 자동 저장됩니다.
         </div>
         <div class="board-width-options">
           <button class="board-width-option" type="button" data-width-mode="narrow" onclick="selectBoardColumnWidth('narrow')">
@@ -2995,10 +3213,10 @@ let cloudSaveTimer = null;
    1) 업무 붙임파일 순서 변경(↑/↓ + 마우스 드래그)
    2) 자료보관함 다중 첨부 + 첨부파일 순서 변경(↑/↓ + 마우스 드래그)
    3) 컬럼별 업무 카드 개수 배지 유지
-   4) 상단 '레이아웃 설정' 버튼에서 업무보드 2 / 4 / 6칸 선택
+   4) 상단 '레이아웃 설정' 버튼에서 업무보드 2 / 3 / 4 / 5 / 6칸 선택
       - 축소 시 숨겨질 업무가 있으면 변경을 막아 데이터 누락 방지
-   5) 모든 컬럼(6칸 모드의 진행 Ⅲ·Ⅳ 포함) 제목·글자크기·색상·사용자 아이콘 설정
-   6) 6칸 모드에서 컬럼 최소 폭을 보장하고 가로 스크롤 지원
+   5) 모든 컬럼(5·6칸 모드의 진행 Ⅲ·Ⅳ 포함) 제목·글자크기·색상·사용자 아이콘 설정
+   6) 다중 컬럼 모드에서 컬럼 최소 폭을 보장하고 가로 스크롤 지원
    7) 컬럼 자체를 드래그하여 순서 변경 + 순서 저장
    8) 업무/자료보관함 첨부파일 드래그 시 삽입 위치 선 표시
    9) 컬럼 너비 좁게 / 기본 / 넓게 선택 + 로컬·클라우드 저장
@@ -3023,7 +3241,9 @@ const DEFAULT_COLUMN_SETTINGS = {
 const ALL_BOARD_STATUSES = ["todo", "doing1", "doing2", "doing3", "doing4", "done"];
 const BOARD_COLUMN_STATUS_MAP = {
   2: ["todo", "done"],
+  3: ["todo", "doing1", "done"],
   4: ["todo", "doing1", "doing2", "done"],
+  5: ["todo", "doing1", "doing2", "doing3", "done"],
   6: ["todo", "doing1", "doing2", "doing3", "doing4", "done"]
 };
 
@@ -3094,7 +3314,7 @@ function getStatusOptionLabel(status) {
 
 function getBoardColumnCount() {
     const value = Number(boardMeta && boardMeta.boardColumnCount);
-    return [2, 4, 6].includes(value) ? value : 4;
+    return [2, 3, 4, 5, 6].includes(value) ? value : 4;
 }
 
 function getBoardColumnWidthMode() {
@@ -3157,7 +3377,7 @@ function applyBoardColumnLayout() {
     }
 
     if (tabNav) tabNav.style.setProperty('--board-column-count', String(count));
-    if (currentLabel) currentLabel.textContent = count + '칸 · ' + widthPreset.label;
+    if (currentLabel) currentLabel.textContent = count <= 5 ? (count + '칸 · 자동맞춤') : (count + '칸 · ' + widthPreset.label);
 
     document.querySelectorAll('.board-layout-option').forEach(option => {
       option.classList.toggle('active', Number(option.dataset.layoutCount) === count);
@@ -3274,8 +3494,8 @@ function handleColumnDragOver(event, targetStatus) {
 
     target.classList.add(insertAfter ? 'column-drop-after' : 'column-drop-before');
 
-    /* 6칸 가로 스크롤에서 양끝으로 끌면 자동 스크롤 */
-    const grid = document.querySelector('.kanban-grid.board-layout-6');
+    /* 가로 스크롤이 있는 레이아웃에서 양끝으로 끌면 자동 스크롤 */
+    const grid = document.querySelector('.kanban-grid');
     if (grid) {
       const gridRect = grid.getBoundingClientRect();
       const edge = 72;
@@ -3357,7 +3577,7 @@ function clearColumnDragIndicators() {
 }
 function changeBoardColumnCount(value) {
     const nextCount = Number(value);
-    if (![2, 4, 6].includes(nextCount)) return false;
+    if (![2, 3, 4, 5, 6].includes(nextCount)) return false;
 
     const nextStatuses = BOARD_COLUMN_STATUS_MAP[nextCount];
     const hiddenTasks = tasksData.filter(task => !nextStatuses.includes(task.status));
@@ -3412,10 +3632,14 @@ function selectBoardColumnWidth(mode) {
 
 function ensureBoardColumnCountForTasks() {
     let required = 2;
-    if (tasksData.some(task => task.status === 'doing3' || task.status === 'doing4')) {
+    if (tasksData.some(task => task.status === 'doing4')) {
       required = 6;
-    } else if (tasksData.some(task => task.status === 'doing1' || task.status === 'doing2')) {
+    } else if (tasksData.some(task => task.status === 'doing3')) {
+      required = 5;
+    } else if (tasksData.some(task => task.status === 'doing2')) {
       required = 4;
+    } else if (tasksData.some(task => task.status === 'doing1')) {
+      required = 3;
     }
 
     if (getBoardColumnCount() < required) {
@@ -4387,7 +4611,7 @@ async function saveCloudBoard() {
         };
       });
 
-      const boardColumnCount = [2, 4, 6].includes(Number(source.boardColumnCount))
+      const boardColumnCount = [2, 3, 4, 5, 6].includes(Number(source.boardColumnCount))
         ? Number(source.boardColumnCount)
         : 4;
 
@@ -6428,7 +6652,7 @@ async function saveCloudBoard() {
 
         if (isDone) {
           const doneFilesHtml = `
-            <details class="done-attachments">
+            <details class="task-attachments">
               <summary>📎 붙임파일 ${files.length}개</summary>
               <div class="attachments-section"
                    ondragover="handleTaskFileDragOver(event, '${task.id}')"
@@ -6483,18 +6707,21 @@ async function saveCloudBoard() {
           `;
 
           const filesHtml = `
-            <div class="attachments-section"
-                 ondragover="handleTaskFileDragOver(event, '${task.id}')"
-                 ondragleave="handleTaskFileDragLeave(event)"
-                 ondrop="handleTaskFileDrop(event, '${task.id}')">
-              <div class="att-top">
-                <span class="att-header">📎 붙임파일 (${files.length})</span>
-                <button class="btn-add-file" onclick="triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
+            <details class="task-attachments">
+              <summary>📎 붙임파일 ${files.length}개</summary>
+              <div class="attachments-section"
+                   ondragover="handleTaskFileDragOver(event, '${task.id}')"
+                   ondragleave="handleTaskFileDragLeave(event)"
+                   ondrop="handleTaskFileDrop(event, '${task.id}')">
+                <div class="att-top">
+                  <span class="att-header">붙임파일</span>
+                  <button class="btn-add-file" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
+                </div>
+                <div class="att-list">
+                  ${renderTaskAttachmentItems(task.id, files, '등록된 붙임파일이 없습니다.')}
+                </div>
               </div>
-              <div class="att-list">
-                ${renderTaskAttachmentItems(task.id, files, '등록된 붙임파일이 없습니다.')}
-              </div>
-            </div>
+            </details>
           `;
 
           card.innerHTML = `
