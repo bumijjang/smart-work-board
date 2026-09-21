@@ -3462,17 +3462,23 @@ function applyBoardColumnLayout() {
 
     installColumnDragHandles();
 
-    const activeTab = document.querySelector('.tab-btn.active');
-    if (!activeTab || !activeStatuses.includes(activeTab.dataset.status)) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('active-col'));
+    /*
+       마지막으로 사용자가 선택한 업무 탭을 복원합니다.
+       - iPad / 태블릿에서 새로고침해도 같은 탭 유지
+       - PC에서도 상태는 계속 보존
+       - 레이아웃 축소로 저장된 탭이 숨겨졌다면 첫 번째 유효 탭으로 자동 보정
+    */
+    const storedActiveStatus = getStoredActiveBoardTab();
 
-      const firstStatus = activeStatuses[0];
-      const firstTab = document.getElementById('tabbtn-' + firstStatus);
-      const firstCol = document.getElementById('col-' + firstStatus);
+    if (storedActiveStatus && activeStatuses.includes(storedActiveStatus)) {
+      activateBoardTab(storedActiveStatus, false);
+    } else {
+      const activeTab = document.querySelector('.tab-btn.active');
+      const currentStatus = activeTab && activeStatuses.includes(activeTab.dataset.status)
+        ? activeTab.dataset.status
+        : activeStatuses[0];
 
-      if (firstTab) firstTab.classList.add('active');
-      if (firstCol) firstCol.classList.add('active-col');
+      activateBoardTab(currentStatus, true);
     }
 }
 
@@ -4894,13 +4900,148 @@ async function saveCloudBoard() {
       }
     ];
 
-    // 세부업무 접기/펼치기 상태는 화면 갱신 중에도 유지합니다.
-    // 클라우드/업무 데이터에는 저장하지 않는 UI 전용 상태입니다.
-    const openSubtaskTaskIds = new Set();
+    // ========================================================
+    // 마지막 선택 업무 탭 저장
+    // - iPad / 태블릿 / 좁은 화면에서 마지막으로 선택한 업무 탭을 기억
+    // - 새로고침 후 동일 탭과 동일 컬럼을 자동 복원
+    // - PC에서도 상태값은 유지되므로 화면 폭을 줄였을 때 마지막 탭이 그대로 복원됨
+    // ========================================================
+    const ACTIVE_BOARD_TAB_STORAGE_KEY = "SMART_BOARD_ACTIVE_TAB_V1";
+
+    function getStoredActiveBoardTab() {
+      try {
+        const status = String(localStorage.getItem(ACTIVE_BOARD_TAB_STORAGE_KEY) || "");
+        return ALL_BOARD_STATUSES.includes(status) ? status : null;
+      } catch (e) {
+        console.warn("마지막 업무 탭 불러오기 제한:", e);
+        return null;
+      }
+    }
+
+    function setStoredActiveBoardTab(status) {
+      if (!ALL_BOARD_STATUSES.includes(status)) return;
+
+      try {
+        localStorage.setItem(ACTIVE_BOARD_TAB_STORAGE_KEY, status);
+      } catch (e) {
+        console.warn("마지막 업무 탭 저장 제한:", e);
+      }
+    }
+
+    function activateBoardTab(status, persist = true) {
+      const activeStatuses = getActiveStatuses();
+      const safeStatus = activeStatuses.includes(status)
+        ? status
+        : (activeStatuses[0] || "todo");
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.status === safeStatus);
+      });
+
+      document.querySelectorAll('.kanban-col').forEach(col => {
+        col.classList.toggle('active-col', col.id === 'col-' + safeStatus);
+      });
+
+      if (persist) {
+        setStoredActiveBoardTab(safeStatus);
+      }
+
+      return safeStatus;
+    }
+
+    // ========================================================
+    // 업무카드 상세영역(세부업무 / 붙임파일) 펼침 상태 저장
+    // - 카드 재렌더링 후에도 현재 펼침 상태 유지
+    // - 브라우저 새로고침 후에도 마지막 펼침/접힘 상태 복원
+    // - 업무 데이터 / Supabase에는 넣지 않고 이 기기의 localStorage에만 저장
+    // ========================================================
+    const TASK_DETAILS_UI_STATE_KEY = "SMART_BOARD_TASK_DETAILS_UI_STATE_V1";
+
+    function getStoredTaskDetailsUiState() {
+      try {
+        const raw = localStorage.getItem(TASK_DETAILS_UI_STATE_KEY);
+        if (!raw) {
+          return { subtasks: [], attachments: [] };
+        }
+
+        const parsed = JSON.parse(raw);
+
+        return {
+          subtasks: Array.isArray(parsed && parsed.subtasks)
+            ? parsed.subtasks.map(String)
+            : [],
+          attachments: Array.isArray(parsed && parsed.attachments)
+            ? parsed.attachments.map(String)
+            : []
+        };
+      } catch (e) {
+        console.warn("업무 상세영역 화면상태 불러오기 제한:", e);
+        return { subtasks: [], attachments: [] };
+      }
+    }
+
+    const storedTaskDetailsUiState = getStoredTaskDetailsUiState();
+    const openSubtaskTaskIds = new Set(storedTaskDetailsUiState.subtasks);
+    const openAttachmentTaskIds = new Set(storedTaskDetailsUiState.attachments);
+
+    function persistTaskDetailsUiState() {
+      try {
+        // 삭제된 업무의 오래된 화면상태는 자동 정리
+        const validTaskIds = new Set(
+          (Array.isArray(tasksData) ? tasksData : [])
+            .map(task => String(task && task.id || ""))
+            .filter(Boolean)
+        );
+
+        const subtasks = Array.from(openSubtaskTaskIds)
+          .map(String)
+          .filter(id => validTaskIds.has(id));
+
+        const attachments = Array.from(openAttachmentTaskIds)
+          .map(String)
+          .filter(id => validTaskIds.has(id));
+
+        localStorage.setItem(
+          TASK_DETAILS_UI_STATE_KEY,
+          JSON.stringify({ subtasks, attachments })
+        );
+      } catch (e) {
+        console.warn("업무 상세영역 화면상태 저장 제한:", e);
+      }
+    }
+
+    function captureTaskDetailsUiStateFromDom() {
+      // saveAll()로 카드 전체가 다시 그려지기 직전 현재 화면상태를 먼저 기억합니다.
+      document.querySelectorAll(".task-card").forEach(card => {
+        const taskId = String(card.id || "");
+        if (!taskId) return;
+
+        const subtasksDetails = card.querySelector("details.task-subtasks");
+        if (subtasksDetails) {
+          if (subtasksDetails.open) openSubtaskTaskIds.add(taskId);
+          else openSubtaskTaskIds.delete(taskId);
+        }
+
+        const attachmentsDetails = card.querySelector("details.task-attachments");
+        if (attachmentsDetails) {
+          if (attachmentsDetails.open) openAttachmentTaskIds.add(taskId);
+          else openAttachmentTaskIds.delete(taskId);
+        }
+      });
+
+      persistTaskDetailsUiState();
+    }
 
  function saveAll() {
 
     try {
+
+        /*
+           카드 전체 재렌더링 전에 세부업무/붙임파일의 현재 펼침 상태를 먼저 저장합니다.
+           → 붙임파일 순서 변경, 체크, 제목 수정 등으로 renderBoard()가 다시 실행되어도
+             사용자가 보고 있던 상세영역이 자동으로 접히지 않습니다.
+        */
+        captureTaskDetailsUiStateFromDom();
 
         /* 현재 기기에도 즉시 저장 */
         setStoredTasks(tasksData);
@@ -5124,12 +5265,11 @@ async function saveCloudBoard() {
     }
 
     function switchTab(status, btn) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('active-col'));
-      const targetCol = document.getElementById(`col-${status}`);
-      if (targetCol) targetCol.classList.add('active-col');
+      /*
+         탭 선택과 컬럼 표시를 한 함수에서 함께 처리하고
+         마지막 선택값을 localStorage에 즉시 저장합니다.
+      */
+      activateBoardTab(status, true);
     }
 
     /* ========================================================
@@ -6731,7 +6871,8 @@ async function saveCloudBoard() {
         `;
 
         const filesHtml = `
-          <details class="task-attachments">
+          <details class="task-attachments" ${openAttachmentTaskIds.has(task.id) ? 'open' : ''}
+                   ontoggle="rememberTaskAttachmentsOpen('${task.id}', this.open)">
             <summary>📎 붙임파일 ${files.length}개</summary>
             <div class="attachments-section"
                  ondragover="handleTaskFileDragOver(event, '${task.id}')"
@@ -6819,6 +6960,14 @@ async function saveCloudBoard() {
       if (!task.files[fileIdx] || targetIdx < 0 || targetIdx >= task.files.length) return;
 
       [task.files[fileIdx], task.files[targetIdx]] = [task.files[targetIdx], task.files[fileIdx]];
+
+      /*
+         붙임파일 ▲/▼ 순서 변경 직후 카드가 재렌더링되어도
+         현재 붙임파일 상세영역은 계속 펼쳐진 상태로 유지합니다.
+      */
+      openAttachmentTaskIds.add(taskId);
+      persistTaskDetailsUiState();
+
       saveAll();
 
       if (cloudReady) {
@@ -6883,6 +7032,15 @@ async function saveCloudBoard() {
     function rememberTaskSubtasksOpen(taskId, isOpen) {
       if (isOpen) openSubtaskTaskIds.add(taskId);
       else openSubtaskTaskIds.delete(taskId);
+
+      persistTaskDetailsUiState();
+    }
+
+    function rememberTaskAttachmentsOpen(taskId, isOpen) {
+      if (isOpen) openAttachmentTaskIds.add(taskId);
+      else openAttachmentTaskIds.delete(taskId);
+
+      persistTaskDetailsUiState();
     }
 
     function addSubtaskItem(taskId) {
@@ -6892,6 +7050,7 @@ async function saveCloudBoard() {
         task.subtasks.push({ text: "새 세부 업무 입력", done: false });
         // 추가 직후에도 세부업무 영역이 접히지 않도록 유지
         openSubtaskTaskIds.add(taskId);
+        persistTaskDetailsUiState();
         saveAll();
       }
     }
@@ -6916,6 +7075,8 @@ async function saveCloudBoard() {
       if (confirm('이 업무 항목을 삭제하시겠습니까?')) {
         tasksData = tasksData.filter(t => t.id !== id);
         openSubtaskTaskIds.delete(id);
+        openAttachmentTaskIds.delete(id);
+        persistTaskDetailsUiState();
         saveAll();
       }
     }
