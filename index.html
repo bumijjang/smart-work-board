@@ -1368,8 +1368,61 @@ body.theme-soul .btn-layout-settings {
     padding: 3px 6px;
   }
 
+  .att-batch-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .btn-att-batch {
+    background: transparent;
+    border: 1px solid var(--pill-border);
+    color: var(--text-sub);
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-weight: 800;
+    padding: 4px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .btn-att-batch:hover {
+    color: var(--text-main);
+    border-color: var(--link-color);
+  }
+  .btn-att-batch.danger:hover {
+    color: #fca5a5;
+    border-color: var(--alert-red);
+  }
+  .btn-att-batch:disabled {
+    opacity: .35;
+    cursor: default;
+    pointer-events: none;
+  }
+
   .att-list { display: flex; flex-wrap: wrap; gap: 6px; }
   .att-item { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; }
+  .att-select-checkbox {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    margin: 0 2px 0 0;
+    accent-color: var(--todo-color);
+    cursor: pointer;
+  }
+  .att-select-all-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-sub);
+    font-size: .7rem;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  .att-select-all-wrap input { width: 15px; height: 15px; accent-color: var(--todo-color); cursor: pointer; }
+  .att-selection-count { color: var(--link-color); font-weight: 900; }
   .attachment-order-controls { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; }
   .attachment-order-btn {
     width: 25px; height: 25px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
@@ -2630,6 +2683,7 @@ body.theme-soul .btn-layout-settings {
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   
 </head>
 <body>
@@ -6437,6 +6491,12 @@ async function saveCloudBoard() {
 
       return files.map((file, idx) => `
         <div class="att-item">
+          <input class="att-select-checkbox" type="checkbox"
+                 data-task-id="${escapeHtml(taskId)}" data-file-idx="${idx}"
+                 onchange="handleAttachmentSelectionChange('${taskId}')"
+                 onclick="event.stopPropagation()"
+                 aria-label="${escapeHtml(file.name || '첨부파일')} 선택"
+                 title="선택">
           <button class="att-pill att-file-trigger" type="button"
                   onclick="openAttachmentActionMenu('${taskId}', ${idx})"
                   title="클릭하여 보기·저장·삭제 선택">
@@ -6880,7 +6940,22 @@ async function saveCloudBoard() {
                  ondrop="handleTaskFileDrop(event, '${task.id}')">
               <div class="att-top">
                 <span class="att-header">${isDone ? '완료 업무 첨부자료' : '붙임파일'}</span>
-                <button class="btn-add-file" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
+                <div class="att-batch-actions">
+                  <label class="att-select-all-wrap" title="붙임파일 전체 선택/해제">
+                    <input class="att-select-all-checkbox" type="checkbox" data-task-id="${task.id}"
+                           onchange="toggleSelectAllTaskAttachments('${task.id}', this.checked)"
+                           onclick="event.stopPropagation()" ${files.length ? '' : 'disabled'}>
+                    전체
+                  </label>
+                  <span class="att-selection-count" data-selection-count="${task.id}">0개 선택</span>
+                  <button class="btn-att-batch" type="button" data-selected-download="${task.id}"
+                          onclick="event.preventDefault(); event.stopPropagation(); downloadSelectedTaskAttachments('${task.id}')"
+                          disabled title="체크한 붙임파일 저장">⬇ 선택 다운</button>
+                  <button class="btn-att-batch danger" type="button" data-selected-delete="${task.id}"
+                          onclick="event.preventDefault(); event.stopPropagation(); deleteSelectedTaskAttachments('${task.id}')"
+                          disabled title="체크한 붙임파일 삭제">🗑 선택 삭제</button>
+                  <button class="btn-add-file" type="button" onclick="event.preventDefault(); event.stopPropagation(); triggerFileUpload('${task.id}')">➕ 파일 첨부</button>
+                </div>
               </div>
               <div class="att-list">
                 ${renderTaskAttachmentItems(task.id, files, '등록된 붙임파일이 없습니다.')}
@@ -7715,6 +7790,378 @@ async function downloadFile(taskId, fileIdx) {
     return openAttachmentFile(taskId, fileIdx);
 }
 
+
+
+/* ========================================================
+   붙임파일 선택 관리
+======================================================== */
+function getTaskAttachmentCheckboxes(taskId) {
+    return Array.from(document.querySelectorAll('.att-select-checkbox'))
+        .filter(el => el.dataset.taskId === String(taskId));
+}
+
+function getSelectedTaskAttachmentIndexes(taskId) {
+    return getTaskAttachmentCheckboxes(taskId)
+        .filter(el => el.checked)
+        .map(el => Number(el.dataset.fileIdx))
+        .filter(Number.isInteger)
+        .sort((a, b) => a - b);
+}
+
+function handleAttachmentSelectionChange(taskId) {
+    const checkboxes = getTaskAttachmentCheckboxes(taskId);
+    const selectedCount = checkboxes.filter(el => el.checked).length;
+    const master = Array.from(document.querySelectorAll('.att-select-all-checkbox'))
+        .find(el => el.dataset.taskId === String(taskId));
+
+    if (master) {
+        master.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
+        master.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
+    }
+
+    const countEl = Array.from(document.querySelectorAll('[data-selection-count]'))
+        .find(el => el.dataset.selectionCount === String(taskId));
+    if (countEl) countEl.textContent = `${selectedCount}개 선택`;
+
+    const downBtn = Array.from(document.querySelectorAll('[data-selected-download]'))
+        .find(el => el.dataset.selectedDownload === String(taskId));
+    const delBtn = Array.from(document.querySelectorAll('[data-selected-delete]'))
+        .find(el => el.dataset.selectedDelete === String(taskId));
+    if (downBtn) downBtn.disabled = selectedCount === 0;
+    if (delBtn) delBtn.disabled = selectedCount === 0;
+}
+
+function toggleSelectAllTaskAttachments(taskId, checked) {
+    getTaskAttachmentCheckboxes(taskId).forEach(el => { el.checked = !!checked; });
+    handleAttachmentSelectionChange(taskId);
+}
+
+/* ========================================================
+   붙임파일 선택 다운로드 / 선택 삭제 + 기존 전체 기능 호환
+   - 체크박스로 선택한 파일만 다운로드/삭제
+   - 기존 전체 다운로드/삭제 함수는 호환을 위해 유지
+======================================================== */
+
+function getSafeDownloadBaseName(text) {
+    return String(text || "업무")
+        .trim()
+        .replace(/[\\/:*?"<>|]/g, "_")
+        .replace(/\s+/g, " ")
+        .slice(0, 80) || "업무";
+}
+
+function getUniqueZipEntryName(fileName, usedNames) {
+    const raw = String(fileName || "첨부파일").trim() || "첨부파일";
+
+    if (!usedNames.has(raw)) {
+        usedNames.add(raw);
+        return raw;
+    }
+
+    const dot = raw.lastIndexOf(".");
+    const hasExt = dot > 0 && dot < raw.length - 1;
+    const base = hasExt ? raw.slice(0, dot) : raw;
+    const ext = hasExt ? raw.slice(dot) : "";
+
+    let seq = 2;
+    let candidate = `${base} (${seq})${ext}`;
+
+    while (usedNames.has(candidate)) {
+        seq++;
+        candidate = `${base} (${seq})${ext}`;
+    }
+
+    usedNames.add(candidate);
+    return candidate;
+}
+
+async function saveBlobToDevice(blob, fileName, mimeType) {
+    const safeName = String(fileName || "다운로드.zip").trim() || "다운로드.zip";
+    const type = mimeType || blob?.type || "application/octet-stream";
+
+    if (isIOSLikeDevice() && typeof File !== "undefined") {
+        const shareFile = new File([blob], safeName, { type });
+
+        if (
+            navigator.share &&
+            navigator.canShare &&
+            navigator.canShare({ files: [shareFile] })
+        ) {
+            try {
+                await navigator.share({
+                    title: safeName,
+                    files: [shareFile]
+                });
+                return true;
+            } catch (shareError) {
+                if (shareError && shareError.name === "AbortError") {
+                    return true;
+                }
+                console.warn("일괄파일 공유 저장 실패 - 일반 다운로드로 전환:", shareError);
+            }
+        }
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = safeName;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+    return true;
+}
+
+async function downloadSelectedTaskAttachments(taskId) {
+    const task = tasksData.find(t => t.id === taskId);
+    const indexes = getSelectedTaskAttachmentIndexes(taskId);
+    const files = task && Array.isArray(task.files)
+        ? indexes.map(idx => task.files[idx]).filter(Boolean)
+        : [];
+
+    if (!task || files.length === 0) {
+        alert("다운로드할 붙임파일을 체크해 주세요.");
+        return;
+    }
+
+    const invalidFiles = files.filter(file => !file.path);
+    if (invalidFiles.length > 0) {
+        alert(
+            "경로 정보가 없는 예전 방식의 붙임파일이 선택되어 있습니다.\n" +
+            "해당 파일을 삭제 후 다시 첨부해 주세요."
+        );
+        return;
+    }
+
+    setCloudSyncStatus("syncing", `☁ 선택한 붙임파일 ${files.length}개 다운로드 준비 중...`);
+
+    try {
+        /* 1개 선택 시 원본 파일 그대로 저장 */
+        if (files.length === 1) {
+            const file = files[0];
+            const { data: blob, error } = await sb.storage
+                .from("attachments")
+                .download(file.path);
+            if (error || !blob) throw error || new Error("파일 다운로드 실패");
+            await saveBlobToDevice(blob, file.name || "첨부파일", file.type || blob.type);
+            setCloudSyncStatus("synced", "☁ 동기화 완료");
+            return;
+        }
+
+        if (typeof JSZip === "undefined") {
+            alert("ZIP 모듈을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.");
+            setCloudSyncStatus("error", "☁ 선택 다운로드 실패");
+            return;
+        }
+
+        const zip = new JSZip();
+        const usedNames = new Set();
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            setCloudSyncStatus("syncing", `☁ 선택파일 다운로드 중... ${i + 1}/${files.length}`);
+            const { data: blob, error } = await sb.storage
+                .from("attachments")
+                .download(file.path);
+            if (error || !blob) throw error || new Error(`파일 다운로드 실패: ${file.name || i + 1}`);
+            zip.file(getUniqueZipEntryName(file.name || `첨부파일_${i + 1}`, usedNames), blob);
+        }
+
+        setCloudSyncStatus("syncing", "☁ ZIP 파일 생성 중...");
+        const zipBlob = await zip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE",
+            compressionOptions: { level: 6 }
+        });
+        const zipName = `${getSafeDownloadBaseName(task.title)}_선택붙임_${files.length}개.zip`;
+        await saveBlobToDevice(zipBlob, zipName, "application/zip");
+        setCloudSyncStatus("synced", "☁ 동기화 완료");
+    } catch (error) {
+        console.error("선택 붙임파일 다운로드 오류:", error);
+        alert("선택한 붙임파일 다운로드에 실패했습니다.");
+        setCloudSyncStatus("error", "☁ 선택 다운로드 실패");
+    }
+}
+
+async function deleteSelectedTaskAttachments(taskId) {
+    const task = tasksData.find(t => t.id === taskId);
+    const indexes = getSelectedTaskAttachmentIndexes(taskId);
+    const files = task && Array.isArray(task.files)
+        ? indexes.map(idx => task.files[idx]).filter(Boolean)
+        : [];
+
+    if (!task || files.length === 0) {
+        alert("삭제할 붙임파일을 체크해 주세요.");
+        return;
+    }
+
+    const confirmed = confirm(
+        `선택한 붙임파일 ${files.length}개를 삭제하시겠습니까?\n\n` +
+        "삭제된 파일은 복구할 수 없습니다."
+    );
+    if (!confirmed) return;
+
+    const paths = files.map(file => file.path).filter(Boolean);
+    setCloudSyncStatus("syncing", `☁ 선택한 붙임파일 ${files.length}개 삭제 중...`);
+
+    try {
+        if (paths.length > 0) {
+            const { error } = await sb.storage.from("attachments").remove(paths);
+            if (error) throw error;
+        }
+
+        /* 뒤쪽 인덱스부터 제거해야 앞쪽 인덱스가 밀리지 않음 */
+        [...indexes].sort((a, b) => b - a).forEach(idx => {
+            if (idx >= 0 && idx < task.files.length) task.files.splice(idx, 1);
+        });
+
+        saveAll();
+        if (cloudReady) {
+            if (cloudSaveTimer) {
+                clearTimeout(cloudSaveTimer);
+                cloudSaveTimer = null;
+            }
+            await saveCloudBoard();
+        }
+        await refreshStorageUsage();
+        setCloudSyncStatus("synced", "☁ 동기화 완료");
+    } catch (error) {
+        console.error("선택 붙임파일 삭제 오류:", error);
+        alert("선택한 붙임파일 삭제에 실패했습니다.");
+        setCloudSyncStatus("error", "☁ 선택 삭제 실패");
+    }
+}
+
+async function downloadAllTaskAttachments(taskId) {
+    const task = tasksData.find(t => t.id === taskId);
+    const files = task && Array.isArray(task.files) ? task.files : [];
+
+    if (!task || files.length === 0) {
+        alert("다운로드할 붙임파일이 없습니다.");
+        return;
+    }
+
+    if (typeof JSZip === "undefined") {
+        alert("ZIP 모듈을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.");
+        return;
+    }
+
+    const invalidFiles = files.filter(file => !file || !file.path);
+    if (invalidFiles.length > 0) {
+        alert(
+            "예전 테스트 방식으로 저장된 붙임파일이 포함되어 있어 일괄 다운로드할 수 없습니다.\n" +
+            "경로 정보가 없는 파일을 삭제 후 다시 첨부해 주세요."
+        );
+        return;
+    }
+
+    setCloudSyncStatus("syncing", `☁ 붙임파일 ${files.length}개 일괄 다운로드 준비 중...`);
+
+    try {
+        const zip = new JSZip();
+        const usedNames = new Set();
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            setCloudSyncStatus(
+                "syncing",
+                `☁ 붙임파일 다운로드 중... ${i + 1}/${files.length}`
+            );
+
+            const { data: blob, error } = await sb.storage
+                .from("attachments")
+                .download(file.path);
+
+            if (error || !blob) {
+                throw error || new Error(`파일 다운로드 실패: ${file.name || i + 1}`);
+            }
+
+            zip.file(
+                getUniqueZipEntryName(file.name || `첨부파일_${i + 1}`, usedNames),
+                blob
+            );
+        }
+
+        setCloudSyncStatus("syncing", "☁ ZIP 파일 생성 중...");
+
+        const zipBlob = await zip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE",
+            compressionOptions: { level: 6 }
+        });
+
+        const zipName = `${getSafeDownloadBaseName(task.title)}_붙임파일_${files.length}개.zip`;
+        await saveBlobToDevice(zipBlob, zipName, "application/zip");
+
+        setCloudSyncStatus("synced", "☁ 동기화 완료");
+    } catch (error) {
+        console.error("붙임파일 일괄 다운로드 오류:", error);
+        alert("붙임파일 일괄 다운로드에 실패했습니다.");
+        setCloudSyncStatus("error", "☁ 일괄 다운로드 실패");
+    }
+}
+
+async function deleteAllTaskAttachments(taskId) {
+    const task = tasksData.find(t => t.id === taskId);
+    const files = task && Array.isArray(task.files) ? task.files : [];
+
+    if (!task || files.length === 0) {
+        alert("삭제할 붙임파일이 없습니다.");
+        return;
+    }
+
+    const taskName = String(task.title || "해당 업무").trim() || "해당 업무";
+    const confirmed = confirm(
+        `“${taskName}”의 붙임파일 ${files.length}개를 모두 삭제하시겠습니까?\n\n` +
+        "삭제된 파일은 복구할 수 없습니다."
+    );
+
+    if (!confirmed) return;
+
+    const paths = files
+        .map(file => file && file.path)
+        .filter(Boolean);
+
+    setCloudSyncStatus("syncing", `☁ 붙임파일 ${files.length}개 일괄 삭제 중...`);
+
+    try {
+        /* Storage 경로가 있는 현재 방식 파일만 실제 저장소에서 먼저 삭제 */
+        if (paths.length > 0) {
+            /* 다량 첨부에도 안정적으로 동작하도록 100개씩 나누어 삭제 */
+            for (let i = 0; i < paths.length; i += 100) {
+                const chunk = paths.slice(i, i + 100);
+                const { error } = await sb.storage
+                    .from("attachments")
+                    .remove(chunk);
+
+                if (error) throw error;
+            }
+        }
+
+        /* Storage 삭제 성공 후 카드 메타데이터를 한 번에 비움 */
+        task.files = [];
+        saveAll();
+
+        if (cloudReady) {
+            if (cloudSaveTimer) {
+                clearTimeout(cloudSaveTimer);
+                cloudSaveTimer = null;
+            }
+            await saveCloudBoard();
+        }
+
+        await refreshStorageUsage();
+        setCloudSyncStatus("synced", "☁ 동기화 완료");
+    } catch (error) {
+        console.error("붙임파일 일괄 삭제 오류:", error);
+        alert("붙임파일 일괄 삭제에 실패했습니다.\n삭제되지 않은 파일 목록은 그대로 유지됩니다.");
+        setCloudSyncStatus("error", "☁ 일괄 삭제 실패");
+    }
+}
 
 /* ========================================================
    첨부파일 삭제
