@@ -1753,8 +1753,23 @@ body.theme-soul .btn-layout-settings {
   .task-subtasks summary::after {
     content: "▾";
     color: var(--text-sub);
-    transition: transform 0.15s ease;
-    flex: 0 0 auto;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    line-height: 1;
+    border-radius: 7px;
+    border: 1px solid var(--pill-border);
+    background: var(--pill-bg);
+  }
+
+  .task-subtasks summary:hover::after {
+    color: var(--text-main);
+    border-color: var(--link-color);
   }
 
   .task-subtasks[open] summary::after {
@@ -1772,9 +1787,15 @@ body.theme-soul .btn-layout-settings {
   /* iPad/터치 환경에서는 세부업무 접기·펼치기 영역을 크게 표시 */
   @media (hover: none) and (pointer: coarse) {
     .task-subtasks summary {
-      min-height: 40px;
+      min-height: 44px;
       padding: 4px 2px;
       font-size: 0.84rem;
+    }
+    .task-subtasks summary::after {
+      flex-basis: 36px;
+      width: 36px;
+      height: 36px;
+      font-size: 1.3rem;
     }
   }
 
@@ -1808,8 +1829,23 @@ body.theme-soul .btn-layout-settings {
   .task-attachments summary::after {
     content: "▾";
     color: var(--text-sub);
-    transition: transform 0.15s ease;
-    flex: 0 0 auto;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    line-height: 1;
+    border-radius: 7px;
+    border: 1px solid var(--pill-border);
+    background: var(--pill-bg);
+  }
+
+  .task-attachments summary:hover::after {
+    color: var(--text-main);
+    border-color: var(--link-color);
   }
 
   .task-attachments[open] summary::after {
@@ -1825,9 +1861,15 @@ body.theme-soul .btn-layout-settings {
   /* iPad/터치 환경에서는 접기·펼치기 영역을 조금 더 크게 표시 */
   @media (hover: none) and (pointer: coarse) {
     .task-attachments summary {
-      min-height: 40px;
+      min-height: 44px;
       padding: 4px 2px;
       font-size: 0.82rem;
+    }
+    .task-attachments summary::after {
+      flex-basis: 36px;
+      width: 36px;
+      height: 36px;
+      font-size: 1.3rem;
     }
   }
 
@@ -2074,6 +2116,112 @@ body.theme-soul .btn-layout-settings {
     font-size: 0.86rem;
     line-height: 1.55;
     white-space: pre-wrap;
+  }
+
+  /* 자료보관함: 제목·분류·메모를 카드에서 직접 수정 */
+  .reference-title-inline {
+    min-width: 0;
+    flex: 1 1 auto;
+    width: 100%;
+    color: var(--text-main);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 5px 7px;
+    margin: -5px -7px;
+    font: inherit;
+    font-size: 1.05rem;
+    line-height: 1.45;
+    font-weight: 850;
+    outline: none;
+    cursor: text;
+  }
+  .reference-title-inline:hover {
+    border-color: var(--pill-border);
+    background: color-mix(in srgb, var(--input-bg) 70%, transparent);
+  }
+  .reference-title-inline:focus {
+    border-color: var(--todo-color);
+    background: var(--input-bg);
+    box-shadow: 0 0 0 2px rgba(56,189,248,.10);
+  }
+
+  .reference-inline-edit-row {
+    margin-top: 9px;
+    display: grid;
+    grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+  }
+  .reference-inline-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .reference-inline-label {
+    color: var(--text-sub);
+    font-size: .7rem;
+    font-weight: 850;
+  }
+  .reference-category-inline,
+  .reference-memo-inline {
+    width: 100%;
+    background: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 10px;
+    outline: none;
+    font: inherit;
+    font-size: .82rem;
+  }
+  .reference-category-inline:focus,
+  .reference-memo-inline:focus { border-color: var(--todo-color); }
+  .reference-memo-inline {
+    min-height: 66px;
+    resize: vertical;
+    line-height: 1.45;
+  }
+
+  /* 자료보관함 인라인 수정 저장완료 표시 */
+  .reference-save-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    margin-top: 5px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(16,185,129,.45);
+    background: rgba(16,185,129,.10);
+    color: #6ee7b7;
+    font-size: .72rem;
+    font-weight: 900;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(-2px);
+    pointer-events: none;
+    transition: opacity .16s ease, transform .16s ease;
+  }
+  .reference-save-indicator.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  body.theme-light .reference-save-indicator {
+    color: #047857;
+    background: #ecfdf5;
+    border-color: rgba(5,150,105,.32);
+  }
+
+  .reference-inline-help {
+    margin-top: 4px;
+    color: var(--text-sub);
+    font-size: .68rem;
+    opacity: .82;
+  }
+  @media (max-width: 700px) {
+    .reference-inline-edit-row { grid-template-columns: 1fr; }
   }
 
   .reference-actions {
@@ -5871,7 +6019,17 @@ async function saveCloudBoard() {
           <div class="reference-item">
             <div>
               <div class="reference-item-head">
-                <div class="reference-title">${escapeHtml(item.title || "참고자료")}</div>
+                <input
+                  class="reference-title-inline"
+                  type="text"
+                  maxlength="80"
+                  value="${escapeHtml(item.title || "참고자료")}"
+                  title="제목을 클릭하면 바로 수정할 수 있습니다."
+                  aria-label="자료 제목"
+                  onfocus="this.dataset.originalValue=this.value"
+                  onblur="saveReferenceInlineTitle(${index}, this)"
+                  onkeydown="handleReferenceTitleKeydown(event, ${index}, this)"
+                >
                 <div class="reference-order-actions" aria-label="자료 순서 변경">
                   <button class="reference-order-btn" type="button" onclick="moveReferenceItem(${index}, -1)" title="자료 위로 이동" ${canMoveUp ? "" : "disabled"}>↑</button>
                   <button class="reference-order-btn" type="button" onclick="moveReferenceItem(${index}, 1)" title="자료 아래로 이동" ${canMoveDown ? "" : "disabled"}>↓</button>
@@ -5882,17 +6040,128 @@ async function saveCloudBoard() {
               <div class="reference-file-add-row">
                 <button class="btn-add-file" type="button" onclick="triggerReferenceFileUpload(${index})">➕ 파일 추가</button>
               </div>
+              <div class="reference-inline-edit-row">
+                <label class="reference-inline-field">
+                  <span class="reference-inline-label">분류</span>
+                  <select class="reference-category-inline" onchange="saveReferenceInlineCategory(${index}, this)">
+                    ${getReferenceCategories().map(category => `<option value="${escapeHtml(category)}" ${category === (item.category || getDefaultReferenceCategory()) ? "selected" : ""}>${escapeHtml(category)}</option>`).join("")}
+                  </select>
+                </label>
+                <label class="reference-inline-field">
+                  <span class="reference-inline-label">메모</span>
+                  <textarea
+                    class="reference-memo-inline"
+                    maxlength="500"
+                    placeholder="메모를 입력하세요."
+                    onfocus="this.dataset.originalValue=this.value"
+                    onblur="saveReferenceInlineMemo(${index}, this)"
+                  >${escapeHtml(item.memo || "")}</textarea>
+                </label>
+              </div>
               <div class="reference-meta">
-                <span>🏷 ${escapeHtml(item.category || "기타")}</span>
                 <span>📎 ${files.length}개</span>
                 <span>💾 ${formatStorageBytes(totalSize)}</span>
                 <span>🗓 ${escapeHtml(createdDate)}</span>
               </div>
-              ${item.memo ? `<div class="reference-memo">${escapeHtml(item.memo)}</div>` : ""}
+              <div class="reference-save-indicator" id="referenceSaveIndicator_${index}" aria-live="polite">저장됨 ✓</div>
+              <div class="reference-inline-help">제목·분류·메모는 이 카드에서 바로 수정되며 변경 후 자동 저장됩니다.</div>
             </div>
           </div>
         `;
       }).join("");
+    }
+
+    function handleReferenceTitleKeydown(event, index, input) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        input.blur();
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        input.value = input.dataset.originalValue || boardMeta.referenceFiles?.[index]?.title || "참고자료";
+        input.blur();
+      }
+    }
+
+    const referenceSaveIndicatorTimers = new Map();
+
+    function showReferenceSaved(index) {
+      const el = document.getElementById("referenceSaveIndicator_" + index);
+      if (!el) return;
+
+      const oldTimer = referenceSaveIndicatorTimers.get(index);
+      if (oldTimer) clearTimeout(oldTimer);
+
+      el.textContent = "저장됨 ✓";
+      el.classList.add("show");
+
+      const timer = setTimeout(() => {
+        el.classList.remove("show");
+        referenceSaveIndicatorTimers.delete(index);
+      }, 1800);
+
+      referenceSaveIndicatorTimers.set(index, timer);
+    }
+
+    async function saveReferenceInlineTitle(index, input) {
+      const item = boardMeta.referenceFiles?.[index];
+      if (!item || !input) return;
+
+      const currentTitle = String(item.title || "").trim();
+      const nextTitle = String(input.value || "").trim().slice(0, 80);
+
+      if (!nextTitle) {
+        input.value = currentTitle || "참고자료";
+        alert("자료 제목을 입력하세요.");
+        return;
+      }
+
+      input.value = nextTitle;
+      if (nextTitle === currentTitle) return;
+
+      item.title = nextTitle;
+      input.dataset.originalValue = nextTitle;
+      await persistBoardMetaImmediately();
+      showReferenceSaved(index);
+    }
+
+    async function saveReferenceInlineCategory(index, select) {
+      const item = boardMeta.referenceFiles?.[index];
+      if (!item || !select) return;
+
+      const categories = getReferenceCategories();
+      const nextCategory = String(select.value || "").trim();
+      if (!categories.includes(nextCategory)) {
+        select.value = item.category || getDefaultReferenceCategory();
+        return;
+      }
+
+      if (nextCategory === item.category) return;
+      item.category = nextCategory;
+      await persistBoardMetaImmediately();
+      showReferenceSaved(index);
+
+      // 현재 분류 필터와 맞지 않게 된 경우 즉시 목록을 갱신합니다.
+      const activeFilter = document.getElementById("referenceCategoryFilter")?.value || "all";
+      if (activeFilter !== "all" && activeFilter !== nextCategory) {
+        renderReferenceLibrary();
+      }
+    }
+
+    async function saveReferenceInlineMemo(index, textarea) {
+      const item = boardMeta.referenceFiles?.[index];
+      if (!item || !textarea) return;
+
+      const currentMemo = String(item.memo || "");
+      const nextMemo = String(textarea.value || "").slice(0, 500);
+      if (nextMemo === currentMemo) return;
+
+      item.memo = nextMemo;
+      textarea.dataset.originalValue = nextMemo;
+      await persistBoardMetaImmediately();
+      showReferenceSaved(index);
     }
 
     let pendingDeleteReferenceCategoryIndex = null;
@@ -6023,7 +6292,7 @@ async function saveCloudBoard() {
       const count = (boardMeta.referenceFiles || []).filter(item => item.category === source).length;
 
       if (count === 0) {
-        if (!confirm("‘" + source + "’ 분류를 삭제하시겠습니까?")) return;
+        if (!confirm("진짜 삭제 할끄에용?\n\n분류: " + source)) return;
 
         const currentFilter = document.getElementById("referenceCategoryFilter")?.value || "all";
         const currentInput = document.getElementById("referenceCategoryInput")?.value || "";
@@ -6416,7 +6685,7 @@ async function saveCloudBoard() {
       const file = getReferenceAttachment(index, fileIndex);
       if (!item || !file) return;
 
-      if (!confirm("이 첨부파일을 삭제하시겠습니까?\n" + (file.name || "첨부파일"))) return;
+      if (!confirm("진짜 삭제 할끄에용?\n\n붙임파일: " + (file.name || "첨부파일"))) return;
 
       setCloudSyncStatus("syncing", "☁ 참고자료 파일 삭제 중...");
       if (file.path) {
@@ -6440,7 +6709,7 @@ async function saveCloudBoard() {
       const item = boardMeta.referenceFiles[index];
       if (!item) return;
 
-      if (!confirm("이 참고자료 전체를 삭제하시겠습니까?\n" + (item.title || "참고자료"))) return;
+      if (!confirm("진짜 삭제 할끄에용?\n\n자료: " + (item.title || "참고자료"))) return;
 
       setCloudSyncStatus("syncing", "☁ 참고자료 삭제 중...");
       const paths = getReferenceItemFiles(item).map(file => file.path).filter(Boolean);
@@ -7147,7 +7416,7 @@ async function saveCloudBoard() {
     }
 
     function removeTask(id) {
-      if (confirm('이 업무 항목을 삭제하시겠습니까?')) {
+      if (confirm('진짜 삭제 할끄에용?')) {
         tasksData = tasksData.filter(t => t.id !== id);
         openSubtaskTaskIds.delete(id);
         openAttachmentTaskIds.delete(id);
@@ -7999,8 +8268,7 @@ async function deleteSelectedTaskAttachments(taskId) {
     }
 
     const confirmed = confirm(
-        `선택한 붙임파일 ${files.length}개를 삭제하시겠습니까?\n\n` +
-        "삭제된 파일은 복구할 수 없습니다."
+        `진짜 삭제 할끄에용?\n\n선택한 붙임파일 ${files.length}개\n삭제된 파일은 복구할 수 없습니다.`
     );
     if (!confirmed) return;
 
@@ -8116,8 +8384,7 @@ async function deleteAllTaskAttachments(taskId) {
 
     const taskName = String(task.title || "해당 업무").trim() || "해당 업무";
     const confirmed = confirm(
-        `“${taskName}”의 붙임파일 ${files.length}개를 모두 삭제하시겠습니까?\n\n` +
-        "삭제된 파일은 복구할 수 없습니다."
+        `진짜 삭제 할끄에용?\n\n“${taskName}”의 붙임파일 ${files.length}개 전체\n삭제된 파일은 복구할 수 없습니다.`
     );
 
     if (!confirmed) return;
