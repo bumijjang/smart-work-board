@@ -2098,6 +2098,39 @@ body.theme-soul .btn-layout-settings {
   .reference-file-order-btn:active:not(:disabled) { background: var(--surface-3); color: var(--text-main); }
   .reference-empty-files { padding: 11px 12px; border: 1px dashed var(--pill-border); border-radius: 8px; color: var(--text-sub); font-size: .8rem; }
   .reference-file-add-row { display: flex; justify-content: flex-end; margin-top: 7px; }
+  .reference-file-dropzone {
+    width: 100%;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 14px;
+    border: 1.5px dashed var(--pill-border);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--input-bg) 84%, transparent);
+    color: var(--text-sub);
+    font-size: .82rem;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease;
+  }
+  .reference-file-dropzone:hover,
+  .reference-file-dropzone.dragover {
+    border-color: var(--todo-color);
+    color: var(--link-color);
+    background: color-mix(in srgb, var(--input-bg) 76%, var(--todo-color) 8%);
+  }
+  .reference-file-dropzone.dragover { transform: scale(.995); }
+  .reference-file-dropzone.compact {
+    min-height: 46px;
+    padding: 9px 12px;
+    font-size: .78rem;
+  }
+  .reference-file-dropzone .dropzone-main { color: var(--text-main); font-weight: 900; }
+  .reference-file-dropzone .dropzone-sub { color: var(--text-sub); font-weight: 700; }
+  .reference-file-dropzone-input { display: none !important; }
   .board-column-hidden, .board-tab-hidden { display: none !important; }
 
   .reference-meta {
@@ -3378,8 +3411,22 @@ body.theme-soul .btn-layout-settings {
           <textarea id="referenceMemoInput" maxlength="500" placeholder="자료의 용도나 참고사항을 간단히 적어두세요."></textarea>
         </div>
         <div class="setting-field full">
-          <label for="referenceFileInput">첨부파일 (여러 개 선택 가능)</label>
-          <input id="referenceFileInput" type="file" multiple>
+          <label>첨부파일 (여러 개 선택 가능)</label>
+          <input id="referenceFileInput" class="reference-file-dropzone-input" type="file" multiple onchange="handleReferenceAddFileChange(this)">
+          <div
+            id="referenceAddDropzone"
+            class="reference-file-dropzone"
+            role="button"
+            tabindex="0"
+            onclick="document.getElementById('referenceFileInput').click()"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('referenceFileInput').click();}"
+            ondragover="handleReferenceAddDragOver(event)"
+            ondragleave="handleReferenceAddDragLeave(event)"
+            ondrop="handleReferenceAddDrop(event)"
+          >
+            <span aria-hidden="true">📥</span>
+            <span id="referenceAddDropzoneText"><span class="dropzone-main">파일을 여기에 드래그</span><span class="dropzone-sub">하거나 클릭해서 선택</span></span>
+          </div>
         </div>
         <div class="reference-form-actions">
           <button class="btn-sync" type="button" onclick="toggleReferenceAddForm(false)">취소</button>
@@ -5867,11 +5914,82 @@ async function saveCloudBoard() {
         document.getElementById("referenceTitleInput").value = "";
         document.getElementById("referenceMemoInput").value = "";
         document.getElementById("referenceFileInput").value = "";
+        updateReferenceAddDropzoneText([]);
         renderReferenceCategoryControls(
           document.getElementById("referenceCategoryFilter")?.value || "all",
           getDefaultReferenceCategory()
         );
       }
+    }
+
+    function updateReferenceAddDropzoneText(files) {
+      const label = document.getElementById("referenceAddDropzoneText");
+      if (!label) return;
+      const list = Array.from(files || []);
+      if (list.length === 0) {
+        label.innerHTML = '<span class="dropzone-main">파일을 여기에 드래그</span><span class="dropzone-sub">하거나 클릭해서 선택</span>';
+        return;
+      }
+      const names = list.slice(0, 3).map(file => escapeHtml(file.name)).join(', ');
+      const more = list.length > 3 ? ` 외 ${list.length - 3}개` : '';
+      label.innerHTML = `<span class="dropzone-main">${list.length}개 파일 선택됨</span><span class="dropzone-sub">${names}${more}</span>`;
+    }
+
+    function handleReferenceAddFileChange(input) {
+      updateReferenceAddDropzoneText(input?.files || []);
+    }
+
+    function handleReferenceAddDragOver(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+      event.currentTarget?.classList.add('dragover');
+    }
+
+    function handleReferenceAddDragLeave(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget?.classList.remove('dragover');
+    }
+
+    function handleReferenceAddDrop(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget?.classList.remove('dragover');
+
+      const droppedFiles = Array.from(event.dataTransfer?.files || []);
+      if (droppedFiles.length === 0) return;
+
+      const input = document.getElementById('referenceFileInput');
+      if (!input) return;
+
+      const transfer = new DataTransfer();
+      Array.from(input.files || []).forEach(file => transfer.items.add(file));
+      droppedFiles.forEach(file => transfer.items.add(file));
+      input.files = transfer.files;
+      updateReferenceAddDropzoneText(input.files);
+    }
+
+    function handleReferenceCardDragOver(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+      event.currentTarget?.classList.add('dragover');
+    }
+
+    function handleReferenceCardDragLeave(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget?.classList.remove('dragover');
+    }
+
+    async function handleReferenceCardDrop(event, referenceIndex) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget?.classList.remove('dragover');
+      const files = Array.from(event.dataTransfer?.files || []);
+      if (files.length === 0) return;
+      await attachReferenceFiles(referenceIndex, files);
     }
 
     function getReferencePageNumbers(totalPages, currentPage) {
@@ -6038,25 +6156,20 @@ async function saveCloudBoard() {
               </div>
               <div class="reference-files-wrap">${filesHtml}</div>
               <div class="reference-file-add-row">
-                <button class="btn-add-file" type="button" onclick="triggerReferenceFileUpload(${index})">➕ 파일 추가</button>
-              </div>
-              <div class="reference-inline-edit-row">
-                <label class="reference-inline-field">
-                  <span class="reference-inline-label">분류</span>
-                  <select class="reference-category-inline" onchange="saveReferenceInlineCategory(${index}, this)">
-                    ${getReferenceCategories().map(category => `<option value="${escapeHtml(category)}" ${category === (item.category || getDefaultReferenceCategory()) ? "selected" : ""}>${escapeHtml(category)}</option>`).join("")}
-                  </select>
-                </label>
-                <label class="reference-inline-field">
-                  <span class="reference-inline-label">메모</span>
-                  <textarea
-                    class="reference-memo-inline"
-                    maxlength="500"
-                    placeholder="메모를 입력하세요."
-                    onfocus="this.dataset.originalValue=this.value"
-                    onblur="saveReferenceInlineMemo(${index}, this)"
-                  >${escapeHtml(item.memo || "")}</textarea>
-                </label>
+                <div
+                  class="reference-file-dropzone compact"
+                  role="button"
+                  tabindex="0"
+                  title="파일을 드래그하거나 클릭해서 추가"
+                  onclick="triggerReferenceFileUpload(${index})"
+                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();triggerReferenceFileUpload(${index});}"
+                  ondragover="handleReferenceCardDragOver(event)"
+                  ondragleave="handleReferenceCardDragLeave(event)"
+                  ondrop="handleReferenceCardDrop(event, ${index})"
+                >
+                  <span aria-hidden="true">➕</span>
+                  <span><span class="dropzone-main">파일 추가</span> <span class="dropzone-sub">· 여기에 드래그 가능</span></span>
+                </div>
               </div>
               <div class="reference-meta">
                 <span>📎 ${files.length}개</span>
@@ -6064,7 +6177,6 @@ async function saveCloudBoard() {
                 <span>🗓 ${escapeHtml(createdDate)}</span>
               </div>
               <div class="reference-save-indicator" id="referenceSaveIndicator_${index}" aria-live="polite">저장됨 ✓</div>
-              <div class="reference-inline-help">제목·분류·메모는 이 카드에서 바로 수정되며 변경 후 자동 저장됩니다.</div>
             </div>
           </div>
         `;
