@@ -2861,23 +2861,6 @@ body.theme-soul .btn-layout-settings {
     }
   }
 
-
-/* iPad PDF 다중 열람 — 기존 업무보드 UI와 분리 */
-#multiPdfWorkspace{position:fixed;inset:0;z-index:11000;background:var(--bg-color,#0b1120);color:var(--text-main,#fff);display:none;flex-direction:column;overflow:hidden}
-#multiPdfWorkspace.pdf-visible{display:flex}
-.pdfw-toolbar{display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));background:var(--surface-2,#1e293b);border-bottom:1px solid var(--border-color,#334155);flex-wrap:wrap}
-.pdfw-heading{font-weight:850;margin-right:auto}.pdfw-btn{background:var(--surface-3,#334155);color:var(--text-main,#fff);border:1px solid var(--border-color,#475569);border-radius:8px;padding:9px 12px;font-weight:750;cursor:pointer}
-.pdfw-tabs{display:flex;flex:0 0 auto;overflow-x:auto;gap:5px;padding:8px;background:var(--surface-1,#0f172a);border-bottom:1px solid var(--border-color,#334155);scrollbar-width:thin}
-.pdfw-tab{display:flex;align-items:center;flex:0 0 auto;max-width:min(300px,70vw);gap:6px;padding:4px 4px 4px 12px;background:var(--surface-2,#1e293b);border:1px solid var(--border-color,#334155);border-radius:8px}
-.pdfw-tab.active{outline:2px solid var(--todo-color,#38bdf8)}
-.pdfw-tab-label{border:0;background:transparent;color:var(--text-main,#fff);font-size:.82rem;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-align:left}
-.pdfw-tab-close{border:0;background:transparent;color:var(--text-main,#fff);padding:7px 9px;font-size:1rem;cursor:pointer}
-.pdfw-panels{flex:1;min-height:0;position:relative;background:#e2e8f0}
-.pdfw-panel{position:absolute;inset:0;display:none;flex-direction:column}
-.pdfw-panel.active{display:flex}
-.pdfw-panel iframe{border:0;width:100%;height:100%;flex:1;background:white}
-.pdfw-message{padding:12px;color:#334155;background:#f8fafc;text-align:center;font-size:.82rem}
-@media(max-width:600px){.pdfw-heading{width:100%}.pdfw-toolbar{gap:5px}.pdfw-btn{padding:8px 9px;font-size:.75rem}}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3498,16 +3481,6 @@ body.theme-soul .btn-layout-settings {
   <input type="file" id="referenceDirectFileInput" multiple style="position:absolute;width:1px;height:1px;opacity:0;" onchange="handleReferenceFilesSelected(this)">
   <input type="file" id="backupFileInput" accept=".json" style="position:absolute;width:1px;height:1px;opacity:0;" onchange="importDataBackup(this)">
 
-
-<!-- 업무보드 내부 PDF 다중 열람 작업공간: Acrobat 앱의 문서 관리와 독립 -->
-<div id="multiPdfWorkspace" role="dialog" aria-modal="true" aria-label="PDF 다중 열람" aria-hidden="true">
- <div class="pdfw-toolbar"><span class="pdfw-heading">📑 PDF 다중 열람</span>
- <button class="pdfw-btn" type="button" onclick="pdfWorkspaceOpenSafari()">↗ Safari 별도 탭</button>
- <button class="pdfw-btn" type="button" onclick="pdfWorkspaceOpenAcrobat()">↗ Acrobat으로 보내기</button>
- <button class="pdfw-btn" type="button" onclick="pdfWorkspaceHide()">← 업무보드로 돌아가기</button></div>
- <div class="pdfw-tabs" id="pdfwTabs" role="tablist"></div>
- <div class="pdfw-panels" id="pdfwPanels"></div>
-</div>
   <script>
 
 /* ========================================================
@@ -6571,7 +6544,7 @@ async function saveCloudBoard() {
 
     /* ========================================================
        공통 파일 보기 / 저장 유틸리티
-       - 보기: 각 첨부파일을 매번 독립된 새 탭에서 열어 기존 PDF 탭을 유지
+       - 보기: 현재 업무보드는 유지하고 새 탭에서 파일을 엶
        - 저장: iPad/iPhone은 공유 시트("파일에 저장" 사용 가능), PC는 직접 다운로드
     ======================================================== */
     function isIOSLikeDevice() {
@@ -6655,7 +6628,6 @@ async function saveCloudBoard() {
          iPad Safari는 비동기 작업(await) 이후 window.open()을 호출하면
          팝업으로 판단할 수 있으므로, 사용자가 '보기'를 누른 즉시 빈 탭을 먼저 엽니다.
       */
-      // 매번 _blank로 독립된 탭 생성: 기존에 열었던 PDF는 닫거나 교체하지 않음
       const previewWindow = window.open("", "_blank");
 
       if (!previewWindow) {
@@ -6790,79 +6762,6 @@ async function saveCloudBoard() {
       }
     }
 
-
-/* ==============================================================
-   iPad PDF 다중 열람: 같은 화면에 독립 iframe을 보존해 탭 전환.
-   Acrobat 앱에는 외부 앱의 다중 문서 유지 동작을 강제할 수 없음.
-   PDF는 Supabase의 단기 signed URL로 표시 (본문 저장/수정 없음).
-============================================================== */
-const pdfWorkspaceItems = new Map();
-let pdfWorkspaceActiveId = null;
-let pdfWorkspaceCounter = 0;
-function pdfWorkspaceShow() {
-  const el = document.getElementById('multiPdfWorkspace');
-  el.classList.add('pdf-visible'); el.setAttribute('aria-hidden','false');
-  document.body.style.overflow='hidden';
-}
-function pdfWorkspaceHide() {
-  const el=document.getElementById('multiPdfWorkspace');
-  el.classList.remove('pdf-visible'); el.setAttribute('aria-hidden','true');
-  document.body.style.overflow='';
-}
-function pdfWorkspaceActivate(id) {
-  if(!pdfWorkspaceItems.has(id)) return;
-  pdfWorkspaceActiveId=id;
-  for(const [key,item] of pdfWorkspaceItems) {
-    const active=key===id;
-    item.tab.classList.toggle('active',active);
-    item.panel.classList.toggle('active',active);
-    item.tab.setAttribute('aria-selected',String(active));
-  }
-  pdfWorkspaceShow();
-}
-function pdfWorkspaceClose(id) {
-  const item=pdfWorkspaceItems.get(id);if(!item)return;
-  item.tab.remove();item.panel.remove();pdfWorkspaceItems.delete(id);
-  if(pdfWorkspaceActiveId===id) {
-    const other=Array.from(pdfWorkspaceItems.keys()).pop();
-    if(other)pdfWorkspaceActivate(other);
-    else {pdfWorkspaceActiveId=null;pdfWorkspaceHide();}
-  }
-}
-async function pdfWorkspaceOpen(path,name,type) {
-  if(!path)return;
-  // 같은 파일은 같은 탭 재활용. 서로 다른 파일은 기존 탭을 절대 삭제하지 않음.
-  const existing=Array.from(pdfWorkspaceItems.entries()).find(([,v])=>v.path===path);
-  if(existing){pdfWorkspaceActivate(existing[0]);return;}
-  const id='pdfw-'+(++pdfWorkspaceCounter);
-  const tabs=document.getElementById('pdfwTabs');
-  const panels=document.getElementById('pdfwPanels');
-  const tab=document.createElement('div');tab.className='pdfw-tab';tab.setAttribute('role','tab');
-  const label=document.createElement('button');label.type='button';label.className='pdfw-tab-label';label.textContent=name||'문서.pdf';label.title=name||'문서.pdf';label.onclick=()=>pdfWorkspaceActivate(id);
-  const close=document.createElement('button');close.type='button';close.className='pdfw-tab-close';close.textContent='×';close.setAttribute('aria-label',(name||'문서')+' 닫기');close.onclick=()=>pdfWorkspaceClose(id);
-  tab.append(label,close);
-  const panel=document.createElement('div');panel.className='pdfw-panel';
-  const info=document.createElement('div');info.className='pdfw-message';info.textContent='PDF를 불러오는 중입니다…';
-  const iframe=document.createElement('iframe');iframe.title=name||'PDF 문서';iframe.setAttribute('allow','fullscreen');
-  panel.append(info,iframe);tabs.appendChild(tab);panels.appendChild(panel);
-  pdfWorkspaceItems.set(id,{path,name,type,tab,panel,iframe,info});
-  pdfWorkspaceActivate(id);
-  try {
-    const {data,error}=await sb.storage.from('attachments').createSignedUrl(path,3600);
-    if(error||!data||!data.signedUrl)throw error||new Error('PDF 주소 생성 실패');
-    if(!pdfWorkspaceItems.has(id))return;
-    iframe.src=data.signedUrl+'#toolbar=1';
-    info.textContent='iPad Safari에서 PDF가 표시되지 않으면 상단의 ‘Safari 별도 탭’을 사용하세요.';
-  }catch(e){console.error('PDF 다중 열람 오류:',e);if(pdfWorkspaceItems.has(id))info.textContent='PDF를 불러오지 못했습니다. 네트워크와 파일 접근 권한을 확인하세요.';}
-}
-function pdfWorkspaceCurrent(){return pdfWorkspaceItems.get(pdfWorkspaceActiveId)||null;}
-function pdfWorkspaceOpenSafari(){const f=pdfWorkspaceCurrent();if(f)openStorageFileInNewTab(f.path,f.name,'PDF');}
-async function pdfWorkspaceOpenAcrobat(){const f=pdfWorkspaceCurrent();if(!f)return;
-  // iPadOS 공유 시트에서 Acrobat을 직접 선택해야 함. 앱 내부의 탭 상태는 그대로 유지.
-  const ok=await openPdfWithIOSAppChooser(f.path,f.name,f.type||'application/pdf','PDF');
-  if(!ok)alert('Acrobat 앱으로 보내기가 지원되지 않는 환경입니다. Safari 탭에서 PDF를 열어주세요.');
-}
-
     function getReferenceAttachment(index, fileIndex) {
       const item = boardMeta.referenceFiles[index];
       if (!item) return null;
@@ -6874,12 +6773,14 @@ async function pdfWorkspaceOpenAcrobat(){const f=pdfWorkspaceCurrent();if(!f)ret
       const file = getReferenceAttachment(index, fileIndex);
       if (!file || !file.path) return;
 
-      /* PDF를 외부 앱으로 넘기지 않고 매번 독립된 새 브라우저 탭에 열어 기존 문서를 보존 */
-      if (isPdfFile(file.name, file.type)) {
-        await pdfWorkspaceOpen(file.path, file.name || "참고자료.pdf", file.type);
-      } else {
-        await openStorageFileInNewTab(file.path, file.name || "참고자료", "참고자료");
+      if (isIOSLikeDevice() && isPdfFile(file.name, file.type)) {
+        const openedWithAppChooser = await openPdfWithIOSAppChooser(
+          file.path, file.name || "문서.pdf", file.type || "application/pdf", "PDF"
+        );
+        if (openedWithAppChooser) return;
       }
+
+      await openStorageFileInNewTab(file.path, file.name || "참고자료", "참고자료");
     }
 
     async function saveReferenceFile(index, fileIndex) {
@@ -8102,12 +8003,12 @@ function showFileActionMenu(file, options) {
             isIOSLikeDevice() &&
             isPdfFile(file.name || file.title, file.type);
 
-        openButton.textContent = isPdfFile(file.name || file.title, file.type)
-            ? "📑 PDF 다중 열람창에서 열기"
+        openButton.textContent = useIOSPdfChooser
+            ? "📱 앱 선택하여 열기"
             : "👁 새 탭에서 보기";
 
-        openButton.title = isPdfFile(file.name || file.title, file.type)
-            ? "기존 PDF를 유지하고 새 PDF 탭 추가"
+        openButton.title = useIOSPdfChooser
+            ? "iPad/iPhone 공유 시트에서 열기 동작 선택"
             : "새 탭에서 파일 보기";
     }
 
@@ -8222,13 +8123,32 @@ async function openAttachmentFile(taskId, fileIdx) {
     const file = getTaskAttachment(taskId, fileIdx);
     if (!validateCurrentStorageAttachment(file)) return;
 
-    /* PDF 포함 모든 첨부파일을 각각 독립된 새 탭으로 엽니다.
-       iOS 공유 시트로 다른 PDF를 전달하면 기존 뷰어의 문서가 교체될 수 있어 사용하지 않습니다. */
-    if (isPdfFile(file.name, file.type)) {
-        await pdfWorkspaceOpen(file.path, file.name || "첨부파일.pdf", file.type);
-    } else {
-        await openStorageFileInNewTab(file.path, file.name || "첨부파일", "첨부파일");
+    /*
+       iPad/iPhone + PDF만 iOS 앱 선택창으로 전달합니다.
+       HWP/HWPX/Office/이미지 등은 기존 새 탭 열기 방식을 그대로 유지합니다.
+       앱 선택창을 지원하지 않는 환경이면 PDF도 기존 Safari 새 탭 방식으로 자동 대체합니다.
+    */
+    if (
+        isIOSLikeDevice() &&
+        isPdfFile(file.name, file.type)
+    ) {
+        const openedWithAppChooser = await openPdfWithIOSAppChooser(
+            file.path,
+            file.name || "문서.pdf",
+            file.type || "application/pdf",
+            "PDF"
+        );
+
+        if (openedWithAppChooser) {
+            return;
+        }
     }
+
+    await openStorageFileInNewTab(
+        file.path,
+        file.name || "첨부파일",
+        "첨부파일"
+    );
 }
 
 async function saveAttachmentFile(taskId, fileIdx) {
